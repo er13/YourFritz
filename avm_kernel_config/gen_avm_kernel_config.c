@@ -64,10 +64,8 @@ bool relocateConfigArea(struct _avm_kernel_config * *configArea, size_t configSi
 
 	swapEndianess(swapNeeded, &entry->tag);
 
-	while (entry->tag <= avm_kernel_config_tags_last)
+	while (entry->config != NULL)
 	{
-		if (entry->config == NULL) break;
-
 		swapEndianess(swapNeeded, (uint32_t *) &entry->config);
 		entry->config = (void *) ((uint32_t) entry->config - kernelOffset + configBase);
 
@@ -161,10 +159,8 @@ struct _avm_kernel_config* findEntry(struct _avm_kernel_config * *configArea, en
 	if (entry == NULL)
 		return NULL;
 
-	while (entry->tag <= avm_kernel_config_tags_last)
+	while (entry->config != NULL)
 	{
-		if (entry->config == NULL)
-			return NULL;
 		if (entry->tag == tag)
 			return entry;
 		entry++;
