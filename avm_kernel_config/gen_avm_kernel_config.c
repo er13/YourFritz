@@ -40,15 +40,15 @@ void usage()
 
 bool relocateConfigArea(struct _avm_kernel_config * *configArea, size_t configSize)
 {
-	bool						swapNeeded;
-	uint32_t     		 		kernelOffset;
-	uint32_t					configBase;
-	struct _avm_kernel_config *	entry;
+	bool swapNeeded;
+	uint32_t kernelOffset;
+	uint32_t configBase;
+	struct _avm_kernel_config * entry;
 
-	//	- the configuration area is aligned on a 4K boundary and the first 32 bit contain a
-	//	  pointer to an 'struct _avm_kernel_config' array
-	//	- we take the first 32 bit value from the dump and align this pointer to 4K to get
-	//	  the start address of the area in the linked kernel
+	//  - the configuration area is aligned on a 4K boundary and the first 32 bit contain a
+	//    pointer to an 'struct _avm_kernel_config' array
+	//  - we take the first 32 bit value from the dump and align this pointer to 4K to get
+	//    the start address of the area in the linked kernel
 
 	if (!detectInputEndianess(configArea, configSize, &swapNeeded)) return false;
 
@@ -74,7 +74,7 @@ bool relocateConfigArea(struct _avm_kernel_config * *configArea, size_t configSi
 		if ((int) entry->tag == avm_kernel_config_tags_modulememory)
 		{
 			// only _kernel_modulmemory_config entries need relocation of members
-			struct _kernel_modulmemory_config *	module = (struct _kernel_modulmemory_config *) entry->config;
+			struct _kernel_modulmemory_config * module = (struct _kernel_modulmemory_config *) entry->config;
 
 			while (module->name != NULL)
 			{
@@ -100,28 +100,28 @@ void processDeviceTreeEntry(struct _avm_kernel_config* entry)
 	if (!((avm_kernel_config_tags_device_tree_subrev_0 <= entry->tag) && (entry->tag <= avm_kernel_config_tags_device_tree_subrev_last)))
 		return;
 
-			unsigned int 	subRev = entry->tag - avm_kernel_config_tags_device_tree_subrev_0;
-			uint32_t		dtbSize = *(((uint32_t *) entry->config) + 1);
+	unsigned int subRev = entry->tag - avm_kernel_config_tags_device_tree_subrev_0;
+	uint32_t dtbSize = *(((uint32_t *) entry->config) + 1);
 
-			fprintf(stdout, "\n"); // empty line as optical delimiter in front of DTB dump
-			fprintf(stdout, ".L_avm_device_tree_subrev_%u:\n", subRev);
-			fprintf(stdout, "\tAVM_DEVICE_TREE_BLOB\t%u\n", subRev);
+	fprintf(stdout, "\n"); // empty line as optical delimiter in front of DTB dump
+	fprintf(stdout, ".L_avm_device_tree_subrev_%u:\n", subRev);
+	fprintf(stdout, "\tAVM_DEVICE_TREE_BLOB\t%u\n", subRev);
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-			// the 'dtc' compiler always emits this value in 'big endian' (using ASM_EMIT_BELONG
-			// in 'flattree.c' - see there)
-			swapEndianess(true, &dtbSize);
+	// the 'dtc' compiler always emits this value in 'big endian' (using ASM_EMIT_BELONG
+	// in 'flattree.c' - see there)
+	swapEndianess(true, &dtbSize);
 #endif
 
-			register uint8_t *	source = (uint8_t *) entry->config;
-			while (dtbSize > 0)
-			{
-				uint32_t i = (dtbSize > 16 ? 16 : dtbSize);
-				dtbSize -= i;
+	register uint8_t * source = (uint8_t *) entry->config;
+	while (dtbSize > 0)
+	{
+		uint32_t i = (dtbSize > 16 ? 16 : dtbSize);
+		dtbSize -= i;
 
-				fprintf(stdout, "\t.byte\t");
-				while (i--) fprintf(stdout, "0x%02x%c", *(source++), (i ? ',' : '\n'));
-			}
+		fprintf(stdout, "\t.byte\t");
+		while (i--) fprintf(stdout, "0x%02x%c", *(source++), (i ? ',' : '\n'));
+	}
 }
 
 void processVersionInfoEntry(struct _avm_kernel_config* entry)
@@ -131,29 +131,27 @@ void processVersionInfoEntry(struct _avm_kernel_config* entry)
 	if (entry->tag != avm_kernel_config_tags_version_info)
 		return;
 
-			struct _avm_kernel_version_info *	version = (struct _avm_kernel_version_info *) entry->config;
-
-			fprintf(stdout, "\n\tAVM_VERSION_INFO\t\"%s\", \"%s\", \"%s\"\n", version->buildnumber, version->svnversion, version->firmwarestring);
+	struct _avm_kernel_version_info * version = (struct _avm_kernel_version_info *) entry->config;
+	fprintf(stdout, "\n\tAVM_VERSION_INFO\t\"%s\", \"%s\", \"%s\"\n", version->buildnumber, version->svnversion, version->firmwarestring);
 }
 
 void processModuleMemoryEntry(struct _avm_kernel_config* entry)
 {
 	if (entry == NULL)
 		return;
-
 	if (entry->tag != avm_kernel_config_tags_modulememory)
 		return;
 
-			struct _kernel_modulmemory_config *	module = (struct _kernel_modulmemory_config *) entry->config;
-			int									mod_no = 0;
+	struct _kernel_modulmemory_config * module = (struct _kernel_modulmemory_config *) entry->config;
+	int mod_no = 0;
 
-			fprintf(stdout, "\n.L_avm_module_memory:\n");
-			while (module->name != NULL)
-			{
-				fprintf(stdout, "\tAVM_MODULE_MEMORY\t%u, \"%s\", %u\n", ++mod_no, module->name, module->size);
-				module++;
-			}
-			fprintf(stdout, "\tAVM_MODULE_MEMORY\t0\n");
+	fprintf(stdout, "\n.L_avm_module_memory:\n");
+	while (module->name != NULL)
+	{
+		fprintf(stdout, "\tAVM_MODULE_MEMORY\t%u, \"%s\", %u\n", ++mod_no, module->name, module->size);
+		module++;
+	}
+	fprintf(stdout, "\tAVM_MODULE_MEMORY\t0\n");
 }
 
 struct _avm_kernel_config* findEntry(struct _avm_kernel_config * *configArea, enum _avm_kernel_config_tags tag)
@@ -217,8 +215,8 @@ int processConfigArea(struct _avm_kernel_config * *configArea)
 
 int main(int argc, char * argv[])
 {
-	int						returnCode = 1;
-	struct memoryMappedFile	input;
+	int returnCode = 1;
+	struct memoryMappedFile input;
 
 	if (argc < 2)
 	{
@@ -228,8 +226,8 @@ int main(int argc, char * argv[])
 
 	if (openMemoryMappedFile(&input, argv[1], "input", O_RDONLY | O_SYNC, PROT_WRITE, MAP_PRIVATE))
 	{
-		struct _avm_kernel_config **	configArea = (struct _avm_kernel_config **) input.fileBuffer;
-		size_t							configSize = input.fileStat.st_size;
+		struct _avm_kernel_config ** configArea = (struct _avm_kernel_config **) input.fileBuffer;
+		size_t configSize = input.fileStat.st_size;
 
 		if (relocateConfigArea(configArea, configSize))
 		{
@@ -245,4 +243,3 @@ int main(int argc, char * argv[])
 
 	exit(returnCode);
 }
-
