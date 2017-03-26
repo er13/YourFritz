@@ -140,7 +140,8 @@ bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t conf
 		tag = entry->tag;
 		swapEndianess(assumeSwapped, &tag);
 		// invalid value means, our assumption was wrong
-		if (tag != 0 && tag > avm_kernel_config_tags_last) return false;
+		if (!(avm_kernel_config_tags_undef < tag && tag <= avm_kernel_config_tags_last))
+			return false;
 	}
 
 	// now we compute offset in kernel
