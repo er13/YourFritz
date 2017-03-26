@@ -93,7 +93,7 @@ bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t conf
 	//	- we'll stop at the second 'end of array' marker, assuming we've
 	//	  reached the end of 'struct _avm_kernel_config' array, the tag at
 	//	  this array entry should be equal to avm_kernel_config_tags_last
-	//	- limit search to first 16 KB (4096 * sizeof(uint34_t)), if the whole
+	//	- limit search to first 16 KB (4096 * sizeof(uint32_t)), if the whole
 	//	  area is empty
 
 	ptr = (uint32_t *) configArea;
@@ -123,7 +123,7 @@ bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t conf
 		ptr++;
 	}
 
-	// if we didn't find one of our pointers, something wents wrong
+	// if we didn't find one of our pointers, something went wrong
 	if (base == NULL || arrayStart == NULL || arrayEnd == NULL) return false;
 
 	// check avm_kernel_config_tags_last entry first
