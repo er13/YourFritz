@@ -129,7 +129,7 @@ bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t conf
 	// check avm_kernel_config_tags_last entry first
 	entry = (struct _avm_kernel_config *) arrayEnd - 1;
 	tag = entry->tag;
-	if (tag == 0) return false;
+	if (tag == 0) return false; // <-- TODO: could never be the case, arrayEnd has been found as 1st non-zero word after arrayStart, this implies tag & config could not be zero at the same time => remove the code
 
 	// set assumption
 	assumeSwapped = (tag <= avm_kernel_config_tags_last ? false : true);
