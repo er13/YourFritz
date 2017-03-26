@@ -38,7 +38,7 @@ void usage()
 
 }
 
-bool relocateConfigArea(struct _avm_kernel_config * *configArea, size_t configSize)
+bool relocateConfigArea(struct _avm_kernel_config * *configArea, size_t configSize, uint32_t *derived_avm_kernel_config_tags_last)
 {
 	bool swapNeeded;
 	uint32_t kernelOffset;
@@ -50,7 +50,7 @@ bool relocateConfigArea(struct _avm_kernel_config * *configArea, size_t configSi
 	//  - we take the first 32 bit value from the dump and align this pointer to 4K to get
 	//    the start address of the area in the linked kernel
 
-	if (!isConsistentConfigArea(configArea, configSize, &swapNeeded)) return false;
+	if (!isConsistentConfigArea(configArea, configSize, &swapNeeded, derived_avm_kernel_config_tags_last)) return false;
 
 	configBase = (uint32_t) configArea;
 	swapEndianess(swapNeeded, (uint32_t *) configArea);
@@ -95,8 +95,13 @@ void processDeviceTreeEntry(struct _avm_kernel_config* entry)
 {
 	if (entry == NULL)
 		return;
+#ifdef USE_STRIPPED_AVM_KERNEL_CONFIG_H
+	if (!(avm_kernel_config_tags_device_tree_subrev_0 <= entry->tag)) // it is safe to skip the full check as the caller does it
+		return;
+#else
 	if (!((avm_kernel_config_tags_device_tree_subrev_0 <= entry->tag) && (entry->tag <= avm_kernel_config_tags_device_tree_subrev_last)))
 		return;
+#endif
 
 	unsigned int subRev = entry->tag - avm_kernel_config_tags_device_tree_subrev_0;
 	uint32_t dtbSize = *(((uint32_t *) entry->config) + 1);
@@ -166,10 +171,18 @@ struct _avm_kernel_config* findEntry(struct _avm_kernel_config * *configArea, en
 	return NULL;
 }
 
-int processConfigArea(struct _avm_kernel_config * *configArea)
+int processConfigArea(struct _avm_kernel_config * *configArea, uint32_t derived_avm_kernel_config_tags_last)
 {
 	struct _avm_kernel_config *moduleMemoryEntry = findEntry(configArea, avm_kernel_config_tags_modulememory);
 	struct _avm_kernel_config *versionInfoEntry  = findEntry(configArea, avm_kernel_config_tags_version_info);
+
+#ifdef USE_STRIPPED_AVM_KERNEL_CONFIG_H
+	// based on real avm_kernel_config.h's seen so far: 7490.06.5X, 7490.06.8X, 7580.06.5X
+	enum _avm_kernel_config_tags tag_device_tree_subrev_last = (derived_avm_kernel_config_tags_last - 2);
+#else
+	(void)derived_avm_kernel_config_tags_last; // silence unused parameter warning
+	enum _avm_kernel_config_tags tag_device_tree_subrev_last = avm_kernel_config_tags_device_tree_subrev_last;
+#endif
 
 	fprintf(stdout, "#include \"avm_kernel_config_macros.h\"\n\n");
 
@@ -184,7 +197,7 @@ int processConfigArea(struct _avm_kernel_config * *configArea)
 
 	// device tree for subrevision 0 is the fallback entry and may be expected
 	// as 'always present', if FDTs exist at all
-	for (enum _avm_kernel_config_tags tag = avm_kernel_config_tags_device_tree_subrev_0; tag <= avm_kernel_config_tags_device_tree_subrev_last; tag++)
+	for (enum _avm_kernel_config_tags tag = avm_kernel_config_tags_device_tree_subrev_0; tag <= tag_device_tree_subrev_last; tag++)
 	{
 		if (findEntry(configArea, tag))
 		{
@@ -194,7 +207,7 @@ int processConfigArea(struct _avm_kernel_config * *configArea)
 
 	fprintf(stdout, "\tAVM_KERNEL_CONFIG_ENTRY\t0\n");
 
-	for (enum _avm_kernel_config_tags tag = avm_kernel_config_tags_device_tree_subrev_0; tag <= avm_kernel_config_tags_device_tree_subrev_last; tag++)
+	for (enum _avm_kernel_config_tags tag = avm_kernel_config_tags_device_tree_subrev_0; tag <= tag_device_tree_subrev_last; tag++)
 	{
 		processDeviceTreeEntry(findEntry(configArea, tag));
 	}
@@ -221,10 +234,11 @@ int main(int argc, char * argv[])
 	{
 		struct _avm_kernel_config ** configArea = (struct _avm_kernel_config **) input.fileBuffer;
 		size_t configSize = input.fileStat.st_size;
+		uint32_t derived_avm_kernel_config_tags_last;
 
-		if (relocateConfigArea(configArea, configSize))
+		if (relocateConfigArea(configArea, configSize, &derived_avm_kernel_config_tags_last))
 		{
-			returnCode = processConfigArea(configArea);
+			returnCode = processConfigArea(configArea, derived_avm_kernel_config_tags_last);
 		}
 		else
 		{

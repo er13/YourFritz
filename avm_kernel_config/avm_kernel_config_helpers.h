@@ -13,11 +13,11 @@
 #include <sys/fcntl.h>
 #include <sys/mman.h>
 
-#ifdef FREETZ
-#include <linux/avm_kernel_config.h>
-#else // FREETZ
+#ifdef USE_STRIPPED_AVM_KERNEL_CONFIG_H
+#include "avm_kernel_config.h"
+#else
 #include "linux/include/uapi/linux/avm_kernel_config.h"
-#endif // FREETZ
+#endif
 
 struct memoryMappedFile
 {
@@ -31,7 +31,7 @@ struct memoryMappedFile
 
 bool openMemoryMappedFile(struct memoryMappedFile *file, const char *fileName, const char *fileDescription, int openFlags, int prot, int flags);
 void closeMemoryMappedFile(struct memoryMappedFile *file);
-bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t configSize, bool *swapNeeded);
+bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t configSize, bool *swapNeeded, uint32_t *derived_avm_kernel_config_tags_last);
 void swapEndianess(bool needed, uint32_t *ptr);
 
 #endif

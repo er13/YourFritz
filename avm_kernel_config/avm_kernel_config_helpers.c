@@ -72,14 +72,14 @@ void closeMemoryMappedFile(struct memoryMappedFile *file)
 
 }
 
-bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t configSize, bool *swapNeeded)
+bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t configSize, bool *swapNeeded, uint32_t *derived_avm_kernel_config_tags_last)
 {
 	uint32_t *					arrayStart = NULL;
 	uint32_t *					arrayEnd = NULL;
 	uint32_t *					ptr = NULL;
 	uint32_t *					base = NULL;
 	uint32_t					offset;
-	uint32_t					tag;
+	uint32_t					lastTag;
 	uint32_t					ptrValue;
 	struct _avm_kernel_config *	entry;
 	bool						assumeSwapped = false;
@@ -128,19 +128,30 @@ bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t conf
 
 	// check avm_kernel_config_tags_last entry first
 	entry = (struct _avm_kernel_config *) arrayEnd - 1;
-	tag = entry->tag;
-	if (tag == 0) return false; // <-- TODO: could never be the case, arrayEnd has been found as 1st non-zero word after arrayStart, this implies tag & config could not be zero at the same time => remove the code
+	lastTag = entry->tag;
 
-	// set assumption
-	assumeSwapped = (tag <= avm_kernel_config_tags_last ? false : true);
+	// guess if endianness swap is required
+#ifdef USE_STRIPPED_AVM_KERNEL_CONFIG_H
+	// stripped "avm_kernel_config.h" intentionally doesn't provide avm_kernel_config_tags_last symbol
+	#define MAX_PLAUSIBLE_AVM_KERNEL_CONFIG_TAGS_ENUM (0x000001FF)
+	assumeSwapped = (lastTag <= MAX_PLAUSIBLE_AVM_KERNEL_CONFIG_TAGS_ENUM ? false : true);
+	swapEndianess(assumeSwapped, &lastTag);
+	if (!(avm_kernel_config_tags_undef < lastTag && lastTag <= MAX_PLAUSIBLE_AVM_KERNEL_CONFIG_TAGS_ENUM))
+		return false;
+#else
+	assumeSwapped = (lastTag <= avm_kernel_config_tags_last ? false : true);
+	swapEndianess(assumeSwapped, &lastTag);
+	if (lastTag != avm_kernel_config_tags_last)
+		return false;
+#endif
 
 	// check other tags
 	for (entry = (struct _avm_kernel_config *) arrayStart; entry->config != NULL; entry++)
 	{
-		tag = entry->tag;
+		uint32_t tag = entry->tag;
 		swapEndianess(assumeSwapped, &tag);
 		// invalid value means, our assumption was wrong
-		if (!(avm_kernel_config_tags_undef < tag && tag <= avm_kernel_config_tags_last))
+		if (!(avm_kernel_config_tags_undef < tag && tag <= lastTag)) /* that lastTag is in range has been validated before */
 			return false;
 	}
 
@@ -165,6 +176,8 @@ bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t conf
 
 	// we may be sure here, that the endianess was detected successful
 	*swapNeeded = assumeSwapped;
+	if (derived_avm_kernel_config_tags_last)
+		*derived_avm_kernel_config_tags_last = lastTag;
 	return true;
 }
 
