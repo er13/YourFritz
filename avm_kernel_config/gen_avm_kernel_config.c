@@ -186,58 +186,29 @@ void processModuleMemoryEntries(struct _avm_kernel_config * *configArea)
 
 }
 
-bool hasModuleMemory(struct _avm_kernel_config * *configArea)
+struct _avm_kernel_config* hasTag(struct _avm_kernel_config * *configArea, enum _avm_kernel_config_tags tag)
 {
-	struct _avm_kernel_config *	entry = *configArea;
+	struct _avm_kernel_config * entry = *configArea;
 
-	if (entry == NULL) return false;
+	if (entry == NULL)
+		return NULL;
 
 	while (entry->tag <= avm_kernel_config_tags_last)
 	{
-		if (entry->config == NULL) return false;
-		if (entry->tag == avm_kernel_config_tags_modulememory) return true;
+		if (entry->config == NULL)
+			return NULL;
+		if (entry->tag == tag)
+			return entry;
 		entry++;
 	}
 
-	return false;
-}
-
-bool hasVersionInfo(struct _avm_kernel_config * *configArea)
-{
-	struct _avm_kernel_config *	entry = *configArea;
-
-	if (entry == NULL) return false;
-
-	while (entry->tag <= avm_kernel_config_tags_last)
-	{
-		if (entry->config == NULL) return false;
-		if (entry->tag == avm_kernel_config_tags_version_info) return true;
-		entry++;
-	}
-
-	return false;
-}
-
-bool hasDeviceTree(struct _avm_kernel_config * *configArea, int i)
-{
-	struct _avm_kernel_config *	entry = *configArea;
-
-	if (entry == NULL) return false;
-
-	while (entry->tag <= avm_kernel_config_tags_last)
-	{
-		if (entry->config == NULL) return false;
-		if ((int) entry->tag == i) return true;
-		entry++;
-	}
-
-	return false;
+	return NULL;
 }
 
 int processConfigArea(struct _avm_kernel_config * *configArea)
 {
-	bool	outputModuleMemory = hasModuleMemory(configArea);
-	bool	outputVersionInfo = hasVersionInfo(configArea);
+	bool	outputModuleMemory = hasTag(configArea, avm_kernel_config_tags_modulememory);
+	bool	outputVersionInfo = hasTag(configArea, avm_kernel_config_tags_version_info);
 	bool	outputDeviceTrees = false;
 
 	fprintf(stdout, "#include \"avm_kernel_config_macros.h\"\n\n");
@@ -252,12 +223,12 @@ int processConfigArea(struct _avm_kernel_config * *configArea)
 
 	// device tree for subrevision 0 is the fallback entry and may be expected
 	// as 'always present', if FDTs exist at all
-	for (int i = avm_kernel_config_tags_device_tree_subrev_0; i <= avm_kernel_config_tags_device_tree_subrev_last; i++)
+	for (enum _avm_kernel_config_tags tag = avm_kernel_config_tags_device_tree_subrev_0; tag <= avm_kernel_config_tags_device_tree_subrev_last; tag++)
 	{
-		if (hasDeviceTree(configArea, i))
+		if (hasTag(configArea, tag))
 		{
 			outputDeviceTrees = true;
-			fprintf(stdout, "\tAVM_KERNEL_CONFIG_ENTRY\t%u, \"device_tree_subrev_%u\"\n", i, i - avm_kernel_config_tags_device_tree_subrev_0);
+			fprintf(stdout, "\tAVM_KERNEL_CONFIG_ENTRY\t%u, \"device_tree_subrev_%u\"\n", tag, tag - avm_kernel_config_tags_device_tree_subrev_0);
 		}
 	}
 
