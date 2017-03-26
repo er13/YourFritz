@@ -175,7 +175,8 @@ bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t conf
 	}
 
 	// we may be sure here, that the endianess was detected successful
-	*swapNeeded = assumeSwapped;
+	if (swapNeeded)
+		*swapNeeded = assumeSwapped;
 	if (derived_avm_kernel_config_tags_last)
 		*derived_avm_kernel_config_tags_last = lastTag;
 	return true;

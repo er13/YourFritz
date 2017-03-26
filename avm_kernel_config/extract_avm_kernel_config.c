@@ -42,14 +42,6 @@ void usage()
 	fprintf(stderr, "\nwhich may be overwritten with the -s option.\n");
 }
 
-bool checkConfigArea(struct _avm_kernel_config ** configArea, size_t configSize)
-{
-	bool			swapNeeded = false;
-
-	if (!isConsistentConfigArea(configArea, configSize, &swapNeeded, NULL)) return false;
-	return true;
-}
-
 struct _avm_kernel_config ** findConfigArea(void *dtbLocation, size_t size)
 {
 	struct _avm_kernel_config **	configArea = NULL;
@@ -57,7 +49,8 @@ struct _avm_kernel_config ** findConfigArea(void *dtbLocation, size_t size)
 	// previous 4K boundary should be the start of the config area
 	configArea = (struct _avm_kernel_config **) (((int) dtbLocation >> 12) << 12);
 
-	if (checkConfigArea(configArea, size)) return configArea;
+	if (isConsistentConfigArea(configArea, size, NULL, NULL))
+		return configArea;
 
 	return NULL;
 }
