@@ -150,7 +150,7 @@ void * findDeviceTreeImage(void *haystack, size_t haystackSize, void *needle, si
 void * locateDeviceTreeSignature(void *kernelBuffer, size_t kernelSize)
 {
 	void *		location = NULL;
-	uint32_t	signature = 0xD00DFEED;
+	uint32_t	signature = FDT_MAGIC;
 	uint32_t *	ptr = (uint32_t *) kernelBuffer;
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
