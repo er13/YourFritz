@@ -54,7 +54,7 @@ struct _avm_kernel_config ** findConfigArea(void *dtbLocation, size_t size)
 {
 	struct _avm_kernel_config **	configArea = NULL;
 
-	// previous 4K boundary should be the start of the config area 
+	// previous 4K boundary should be the start of the config area
 	configArea = (struct _avm_kernel_config **) (((int) dtbLocation >> 12) << 12);
 
 	if (checkConfigArea(configArea, size)) return configArea;
@@ -75,7 +75,7 @@ void * findDeviceTreeImage(void *haystack, size_t haystackSize, void *needle, si
 	{
 		uint32_t *	sliding = haystack;
 		uint32_t *	lookFor = needle;
-		
+
 		while (toSearch > 0)
 		{
 			while (*sliding != *lookFor)
@@ -86,7 +86,7 @@ void * findDeviceTreeImage(void *haystack, size_t haystackSize, void *needle, si
 			}
 
 			if (toSearch > 0) // match found for first uint32
-			{	
+			{
 				matchedSoFar = true;
 				resetToSearch = --toSearch;
 				resetSliding = ++sliding;
@@ -138,7 +138,7 @@ void * findDeviceTreeImage(void *haystack, size_t haystackSize, void *needle, si
 					{
 						location = (void *) --resetSliding;
 						break;
-					} 
+					}
 				}
 			}
 		}
@@ -151,8 +151,8 @@ void * locateDeviceTreeSignature(void *kernelBuffer, size_t kernelSize)
 {
 	void *		location = NULL;
 	uint32_t	signature = 0xD00DFEED;
-	uint32_t *	ptr = (uint32_t *) kernelBuffer;	
-	
+	uint32_t *	ptr = (uint32_t *) kernelBuffer;
+
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 	// the DTB signature is store in 'big endian' => swap needed, if we're running on 'little endian' machine
 	swapEndianess(true, &signature);
@@ -268,11 +268,11 @@ int main(int argc, char * argv[])
 				fprintf(stderr, "Unable to locate the config area in the specified kernel image.\n");
 			}
 		}
-		
+
 		if (dtbLocation != NULL)
 		{
 			struct _avm_kernel_config * *configArea = findConfigArea(dtbLocation, size);
-			
+
 			if (configArea != NULL)
 			{
 				ssize_t	written = write(1, (void *) configArea, size);

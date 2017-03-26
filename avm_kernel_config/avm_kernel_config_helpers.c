@@ -1,4 +1,4 @@
-// vi: set tabstop=4 syntax=c :                                       
+// vi: set tabstop=4 syntax=c :
 /***********************************************************************
  *                                                                     *
  *                                                                     *
@@ -105,29 +105,29 @@ bool detectInputEndianess(struct _avm_kernel_config * *configArea, size_t config
 			if (base == NULL) return false; // no pointer, no content
 			else
 			{
-				if (arrayStart != NULL) // last entry found 
+				if (arrayStart != NULL) // last entry found
 				{
 					arrayEnd = ptr + 1;
 					break;
 				}
 			}
-		}	
+		}
 		else
 		{
 			if (base == NULL) base = ptr;
 			else
 			{
 				if (arrayStart == NULL) arrayStart = ptr;
-			}	
+			}
 		}
 		ptr++;
 	}
-	
+
 	// if we didn't find one of our pointers, something wents wrong
 	if (base == NULL || arrayStart == NULL || arrayEnd == NULL) return false;
-	
+
 	// check avm_kernel_config_tags_last entry first
-	entry = (struct _avm_kernel_config *) arrayEnd - 1; 
+	entry = (struct _avm_kernel_config *) arrayEnd - 1;
 	tag = entry->tag;
 	if (tag == 0) return false;
 
@@ -151,7 +151,7 @@ bool detectInputEndianess(struct _avm_kernel_config * *configArea, size_t config
 	ptrValue = *base;
 	swapEndianess(assumeSwapped, &ptrValue);
 	offset = ptrValue & 0xFFFFF000;
-	
+
 	// first value has to point to the array
 	if ((ptrValue - offset) != ((uint32_t) arrayStart - (uint32_t) configArea))
 		return false;
@@ -162,7 +162,7 @@ bool detectInputEndianess(struct _avm_kernel_config * *configArea, size_t config
 	{
 		ptrValue = (uint32_t) entry->config;
 		swapEndianess(assumeSwapped, &ptrValue);
-		
+
 		if (ptrValue <= offset) return false; // points before, impossible
 		if (ptrValue - offset > configSize) return false; // points after
 		if (tag == avm_kernel_config_tags_last) break;

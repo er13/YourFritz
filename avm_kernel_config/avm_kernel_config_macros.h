@@ -21,7 +21,7 @@
 		.ifeq		\tag
 			.int	0
 			.align	4
-		.else		
+		.else
 			.int	.L_avm_\label
 		.endif
 	.endm

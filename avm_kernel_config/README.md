@@ -1,6 +1,6 @@
 This folder contains some utilities to replace/recreate missing parts from AVM's open-source package.
 
-AVM invented a mechanism to initialize some internal structures at kernel startup from a model-specific part and there seems to be 
+AVM invented a mechanism to initialize some internal structures at kernel startup from a model-specific part and there seems to be
 no way to get these sources from vendor - at least an explicit demand to provide them was more or less ignored. The sources pointed
 out in their answer didn't contain any changes regarding these missing parts.
 
