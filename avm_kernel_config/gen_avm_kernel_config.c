@@ -227,7 +227,7 @@ bool hasDeviceTree(struct _avm_kernel_config * *configArea, int i)
 	while (entry->tag <= avm_kernel_config_tags_last)
 	{
 		if (entry->config == NULL) return false;
-		if ((int) entry->tag == (avm_kernel_config_tags_device_tree_subrev_0 + i)) return true;
+		if ((int) entry->tag == i) return true;
 		entry++;
 	}
 
@@ -252,12 +252,12 @@ int processConfigArea(struct _avm_kernel_config * *configArea)
 
 	// device tree for subrevision 0 is the fallback entry and may be expected
 	// as 'always present', if FDTs exist at all
-	for (int i = 0; i <= avm_kernel_config_tags_device_tree_subrev_last; i++)
+	for (int i = avm_kernel_config_tags_device_tree_subrev_0; i <= avm_kernel_config_tags_device_tree_subrev_last; i++)
 	{
 		if (hasDeviceTree(configArea, i))
 		{
 			outputDeviceTrees = true;
-			fprintf(stdout, "\tAVM_KERNEL_CONFIG_ENTRY\t%u, \"device_tree_subrev_%u\"\n", avm_kernel_config_tags_device_tree_subrev_0 + i, i);
+			fprintf(stdout, "\tAVM_KERNEL_CONFIG_ENTRY\t%u, \"device_tree_subrev_%u\"\n", i, i - avm_kernel_config_tags_device_tree_subrev_0);
 		}
 	}
 
