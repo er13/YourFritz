@@ -135,14 +135,12 @@ bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t conf
 	assumeSwapped = (tag <= avm_kernel_config_tags_last ? false : true);
 
 	// check other tags
-	entry = (struct _avm_kernel_config *) arrayStart;
-	while (entry->config != NULL)
+	for (entry = (struct _avm_kernel_config *) arrayStart; entry->config != NULL; entry++)
 	{
 		tag = entry->tag;
 		swapEndianess(assumeSwapped, &tag);
 		// invalid value means, our assumption was wrong
 		if (tag != 0 && tag > avm_kernel_config_tags_last) return false;
-		entry++;
 	}
 
 	// now we compute offset in kernel
@@ -155,15 +153,13 @@ bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t conf
 		return false;
 
 	// check each entry->config pointer, if its value is in range
-	entry = (struct _avm_kernel_config *) arrayStart;
-	while (entry->config != NULL)
+	for (entry = (struct _avm_kernel_config *) arrayStart; entry->config != NULL; entry++)
 	{
 		ptrValue = (uint32_t) entry->config;
 		swapEndianess(assumeSwapped, &ptrValue);
 
 		if (ptrValue <= offset) return false; // points before, impossible
 		if (ptrValue - offset > configSize) return false; // points after
-		entry++;
 	}
 
 	// we may be sure here, that the endianess was detected successful

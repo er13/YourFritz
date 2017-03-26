@@ -154,16 +154,13 @@ void processModuleMemoryEntry(struct _avm_kernel_config* entry)
 
 struct _avm_kernel_config* findEntry(struct _avm_kernel_config * *configArea, enum _avm_kernel_config_tags tag)
 {
-	struct _avm_kernel_config * entry = *configArea;
-
-	if (entry == NULL)
+	if (*configArea == NULL)
 		return NULL;
 
-	while (entry->config != NULL)
+	for (struct _avm_kernel_config * entry = *configArea; entry->config != NULL; entry++)
 	{
 		if (entry->tag == tag)
 			return entry;
-		entry++;
 	}
 
 	return NULL;
