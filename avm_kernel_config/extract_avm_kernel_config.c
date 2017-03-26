@@ -46,7 +46,7 @@ bool checkConfigArea(struct _avm_kernel_config ** configArea, size_t configSize)
 {
 	bool			swapNeeded = false;
 
-	if (!detectInputEndianess(configArea, configSize, &swapNeeded)) return false;
+	if (!isConsistentConfigArea(configArea, configSize, &swapNeeded)) return false;
 	return true;
 }
 

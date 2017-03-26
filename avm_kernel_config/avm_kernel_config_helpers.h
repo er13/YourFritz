@@ -31,7 +31,7 @@ struct memoryMappedFile
 
 bool openMemoryMappedFile(struct memoryMappedFile *file, const char *fileName, const char *fileDescription, int openFlags, int prot, int flags);
 void closeMemoryMappedFile(struct memoryMappedFile *file);
-bool detectInputEndianess(struct _avm_kernel_config * *configArea, size_t configSize, bool *swapNeeded);
+bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t configSize, bool *swapNeeded);
 void swapEndianess(bool needed, uint32_t *ptr);
 
 #endif

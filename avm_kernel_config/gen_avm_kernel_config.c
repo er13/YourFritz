@@ -50,7 +50,7 @@ bool relocateConfigArea(struct _avm_kernel_config * *configArea, size_t configSi
 	//  - we take the first 32 bit value from the dump and align this pointer to 4K to get
 	//    the start address of the area in the linked kernel
 
-	if (!detectInputEndianess(configArea, configSize, &swapNeeded)) return false;
+	if (!isConsistentConfigArea(configArea, configSize, &swapNeeded)) return false;
 
 	configBase = (uint32_t) configArea;
 	swapEndianess(swapNeeded, (uint32_t *) configArea);

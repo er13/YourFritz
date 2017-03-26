@@ -72,7 +72,7 @@ void closeMemoryMappedFile(struct memoryMappedFile *file)
 
 }
 
-bool detectInputEndianess(struct _avm_kernel_config * *configArea, size_t configSize, bool *swapNeeded)
+bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t configSize, bool *swapNeeded)
 {
 	uint32_t *					arrayStart = NULL;
 	uint32_t *					arrayEnd = NULL;
