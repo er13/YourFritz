@@ -100,24 +100,24 @@ bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t conf
 
 	while (ptr <= ((uint32_t *) configArea) + (4096 * sizeof(uint32_t)))
 	{
-		if (*ptr == 0)
+		if (*ptr != 0)
 		{
-			if (base == NULL) return false; // no pointer, no content
-			else
-			{
-				if (arrayStart != NULL) // last entry found
-				{
-					arrayEnd = ptr + 1;
-					break;
-				}
-			}
+			if (base == NULL) {
+				base = ptr;       // 1st non-zero word is base (pointer)
+			} else if (arrayStart == NULL) {
+				arrayStart = ptr; // 2nd non-zero word is arrayStart
+			} /* else ... */          // all other non-zero words are the content of the config area array => ignore them
 		}
 		else
 		{
-			if (base == NULL) base = ptr;
-			else
-			{
-				if (arrayStart == NULL) arrayStart = ptr;
+			if (base == NULL) {
+				// we don't expect to find zero word before base is set (this actually means the 1st word must be non-zero and it's the base pointer)
+				return false; // no pointer, no config area array => inconsistent config area
+			} else if (arrayStart != NULL) {
+				// 1st zero word after arrayStart => this is arrayEnd
+				// or to be more precise zero word it the config-pointer of the entry with tag avm_kernel_config_tags_last
+				arrayEnd = ptr + 1; // thus +1, arrayEnd is exclusive
+				break;
 			}
 		}
 		ptr++;
