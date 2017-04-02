@@ -2,15 +2,13 @@
 #ifndef AVM_KERNEL_CONFIG_HELPERS_H
 #define AVM_KERNEL_CONFIG_HELPERS_H
 
-#include <stdlib.h>
 #include <stdbool.h>
-#include <stdio.h>
-#include <errno.h>
-#include <unistd.h>
 #include <inttypes.h>
-#include <sys/stat.h>
+
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/fcntl.h>
+
 #include <sys/mman.h>
 
 #ifdef USE_STRIPPED_AVM_KERNEL_CONFIG_H

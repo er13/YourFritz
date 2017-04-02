@@ -20,6 +20,9 @@
  *                                                                     *
  ***********************************************************************/
 
+#include <stdlib.h>
+#include <stdio.h>
+
 #include <arpa/inet.h>
 
 #include "avm_kernel_config_helpers.h"

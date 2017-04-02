@@ -20,6 +20,12 @@
  *                                                                     *
  ***********************************************************************/
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 #include "avm_kernel_config_helpers.h"
 
 bool openMemoryMappedFile(struct memoryMappedFile *file, const char *fileName, const char *fileDescription, int openFlags, int prot, int flags)

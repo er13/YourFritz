@@ -20,9 +20,16 @@
  *                                                                     *
  ***********************************************************************/
 
-#include "avm_kernel_config_helpers.h"
-#include <libfdt.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
+#include <unistd.h>
+
 #include <arpa/inet.h>
+
+#include <libfdt.h>
+
+#include "avm_kernel_config_helpers.h"
 
 void usage()
 {
