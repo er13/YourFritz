@@ -29,7 +29,7 @@ void usage()
 	fprintf(stderr, "(C) 2016-2017 P. Hämmerlein (http://www.yourfritz.de)\n\n");
 	fprintf(stderr, "Licensed under GPLv2, see LICENSE file from source repository.\n\n");
 	fprintf(stderr, "Usage:\n\n");
-	fprintf(stderr, "extract_avm_kernel_config [ -s <size in KByte> ] <unpacked_kernel> [<dtb_file>]\n");
+	fprintf(stderr, "extract_avm_kernel_config [ -s <size in KByte> ] [ -l <kernel load address> ] <unpacked_kernel> [<dtb_file>]\n");
 	fprintf(stderr, "\nThe specified DTB content (a compiled OF device tree BLOB) is");
 	fprintf(stderr, "\nsearched in the unpacked kernel and the place, where it's found");
 	fprintf(stderr, "\nis assumed to be within the original kernel config area.\n");
@@ -41,17 +41,23 @@ void usage()
 	fprintf(stderr, "\nTo support different models with changing sizes of the embedded");
 	fprintf(stderr, "\nconfiguration area, a default size of 64 KB for this area is used,");
 	fprintf(stderr, "\nwhich may be overwritten with the -s option.\n");
+	fprintf(stderr, "\nFor kernels loaded at addresses not aligned at 4K boundaries (GRX5 boxes)");
+	fprintf(stderr, "\n-l option must be used to make guessing the config area location possible.\n");
 }
 
-struct _avm_kernel_config ** findConfigArea(void *dtbLocation, size_t size)
+struct _avm_kernel_config ** findConfigArea(void *kernelBuffer, void *dtbLocation, uint32_t kernelLoadAddr /* target address space */, size_t size)
 {
-	struct _avm_kernel_config **	configArea = NULL;
+	if (kernelBuffer < dtbLocation)
+	{
+		// previous 4K boundary should be the start of the config area
+		size_t dtbOffset  = (size_t)dtbLocation - (size_t)kernelBuffer;
+		size_t dtbSegment = (((dtbOffset + kernelLoadAddr) >> 12) << 12); // target address space
 
-	// previous 4K boundary should be the start of the config area
-	configArea = (struct _avm_kernel_config **) (((int) dtbLocation >> 12) << 12);
+		struct _avm_kernel_config **configArea = (struct _avm_kernel_config **) ((size_t)kernelBuffer + (dtbSegment - kernelLoadAddr)); // host address space
 
-	if (isConsistentConfigArea(configArea, size, NULL, NULL))
-		return configArea;
+		if (isConsistentConfigArea(configArea, size, NULL, NULL))
+			return configArea;
+	}
 
 	return NULL;
 }
@@ -174,42 +180,44 @@ int main(int argc, char * argv[])
 	struct memoryMappedFile	kernel;
 	struct memoryMappedFile	dtb;
 	void *					dtbLocation = NULL;
+	uint32_t				kernelLoadAddr = 0;
 	ssize_t					size = 64 * 1024;
 	int						i = 1;
-	int						paramCount = argc;
 
 	/* no reason to use a getopt implementation for our simple calling convention */
-	if (paramCount > i)
+	while (i < argc)
 	{
-		char *				sizeString = NULL;
+		int shortS = (strcmp(argv[i], "-s") == 0);
+		int longS  = (strncmp(argv[i], "--size=", 7) == 0);
+		int shortL = (strcmp(argv[i], "-l") == 0);
+		int longL  = (strncmp(argv[i], "--loadaddr=", 11) == 0);
+		char * optParamString = NULL;
 
-		if (strcmp(argv[i], "-s") == 0)
+		if (shortS || shortL)
 		{
-			if (paramCount > i + 1)
+			if (i + 1 < argc)
 			{
-				sizeString = argv[i + 1];
+				optParamString = argv[i + 1];
 				i += 2;
-				paramCount -= 2;
 			}
 			else
 			{
-				fprintf(stderr, "Missing numeric value after option '-s'.\n");
+				fprintf(stderr, "Missing numeric value after option '%s'.\n", argv[i]);
 				exit(2);
 			}
 		}
-		else if (strncmp(argv[i], "--size=", 7) == 0)
+		else if (longS || longL)
 		{
-			sizeString = strchr(argv[i], '=');
-			sizeString++; /* skip equal sign */
+			optParamString = strchr(argv[i], '=');
+			optParamString++; /* skip equal sign */
 			i += 1;
-			paramCount -= 1;
 		}
 
-		if (sizeString != NULL)
+		if (shortS || longS)
 		{
 			int				newSize;
 
-			newSize = atoi(sizeString);
+			newSize = atoi(optParamString);
 			if (newSize == 0)
 			{
 				fprintf(stderr, "Missing or invalid numeric value for size option.\n");
@@ -227,9 +235,25 @@ int main(int argc, char * argv[])
 			}
 			size = newSize * 1024;
 		}
+		else if (shortL || longL)
+		{
+			char *firstInvalidChar;
+
+			kernelLoadAddr = strtoul(optParamString, &firstInvalidChar, 0);
+			if (*optParamString=='\0' || *firstInvalidChar != '\0')
+			{
+				fprintf(stderr, "Missing or invalid numeric value for loadaddr option. Load address is expected to be a 32-bit hexadecimal or decimal value.\n");
+				exit(2);
+			}
+		}
+		else
+		{
+			// neither size nor loadaddr option
+			break;
+		}
 	}
 
-	if (paramCount < 2)
+	if (!(1 <= (argc - i) && (argc - i) <= 2))
 	{
 		usage();
 		exit(1);
@@ -237,7 +261,7 @@ int main(int argc, char * argv[])
 
 	if (openMemoryMappedFile(&kernel, argv[i], "unpacked kernel", O_RDONLY | O_SYNC, PROT_READ, MAP_SHARED))
 	{
-		if (paramCount > 2)
+		if (i + 1 < argc)
 		{
 			if (openMemoryMappedFile(&dtb, argv[i + 1], "device tree BLOB", O_RDONLY | O_SYNC, PROT_READ, MAP_SHARED))
 			{
@@ -265,7 +289,7 @@ int main(int argc, char * argv[])
 
 		if (dtbLocation != NULL)
 		{
-			struct _avm_kernel_config * *configArea = findConfigArea(dtbLocation, size);
+			struct _avm_kernel_config * *configArea = findConfigArea(kernel.fileBuffer, dtbLocation, kernelLoadAddr, size);
 
 			if (configArea != NULL)
 			{
