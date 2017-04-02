@@ -42,7 +42,7 @@ void usage()
 bool relocateConfigArea(struct _avm_kernel_config * *configArea, size_t configSize, uint32_t *derived_avm_kernel_config_tags_last)
 {
 	bool swapNeeded;
-	uint32_t kernelOffset;
+	uint32_t kernelSegmentStart;
 	uint32_t configBase;
 	struct _avm_kernel_config * entry;
 
@@ -56,9 +56,9 @@ bool relocateConfigArea(struct _avm_kernel_config * *configArea, size_t configSi
 	configBase = (uint32_t) configArea;
 	swapEndianess(swapNeeded, (uint32_t *) configArea);
 
-	kernelOffset = (uint32_t) *((uint32_t *) configArea) & 0xFFFFF000;
+	kernelSegmentStart = (uint32_t) *((uint32_t *) configArea) & 0xFFFFF000;
 
-	entry = (struct _avm_kernel_config *) (*((uint32_t *) configArea) - kernelOffset + configBase);
+	entry = (struct _avm_kernel_config *) (*((uint32_t *) configArea) - kernelSegmentStart + configBase);
 	*configArea = entry;
 
 	if (entry == NULL) return false;
@@ -68,7 +68,7 @@ bool relocateConfigArea(struct _avm_kernel_config * *configArea, size_t configSi
 	while (entry->config != NULL)
 	{
 		swapEndianess(swapNeeded, (uint32_t *) &entry->config);
-		entry->config = (void *) ((uint32_t) entry->config - kernelOffset + configBase);
+		entry->config = (void *) ((uint32_t) entry->config - kernelSegmentStart + configBase);
 
 		if ((int) entry->tag == avm_kernel_config_tags_modulememory)
 		{
@@ -78,7 +78,7 @@ bool relocateConfigArea(struct _avm_kernel_config * *configArea, size_t configSi
 			while (module->name != NULL)
 			{
 				swapEndianess(swapNeeded, (uint32_t *) &module->name);
-				module->name = (char *) ((uint32_t) module->name - kernelOffset + configBase);
+				module->name = (char *) ((uint32_t) module->name - kernelSegmentStart + configBase);
 				swapEndianess(swapNeeded, &module->size);
 
 				module++;

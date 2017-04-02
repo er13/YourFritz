@@ -79,7 +79,7 @@ bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t conf
 	uint32_t *					arrayEnd = NULL;
 	uint32_t *					ptr = NULL;
 	uint32_t *					base = NULL;
-	uint32_t					offset;
+	uint32_t					kernelSegmentStart;
 	uint32_t					lastTag;
 	uint32_t					ptrValue;
 	struct _avm_kernel_config *	entry;
@@ -156,13 +156,13 @@ bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t conf
 			return false;
 	}
 
-	// now we compute offset in kernel
+	// compute the start of the kernel "segment" config area is located within (target address space)
 	ptrValue = *base;
 	swapEndianess(assumeSwapped, &ptrValue);
-	offset = ptrValue & 0xFFFFF000;
+	kernelSegmentStart = ptrValue & 0xFFFFF000;
 
 	// first value has to point to the array
-	if ((ptrValue - offset) != ((uint32_t) arrayStart - (uint32_t) configArea))
+	if ((ptrValue - kernelSegmentStart) != ((uint32_t) arrayStart - (uint32_t) configArea))
 		return false;
 
 	// check each entry->config pointer, if its value is in range
@@ -171,8 +171,8 @@ bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t conf
 		ptrValue = (uint32_t) entry->config;
 		swapEndianess(assumeSwapped, &ptrValue);
 
-		if (ptrValue <= offset) return false; // points before, impossible
-		if (ptrValue - offset > configSize) return false; // points after
+		if (ptrValue <= kernelSegmentStart) return false; // points before, impossible
+		if (ptrValue - kernelSegmentStart > configSize) return false; // points after
 	}
 
 	// we may be sure here, that the endianess was detected successful
