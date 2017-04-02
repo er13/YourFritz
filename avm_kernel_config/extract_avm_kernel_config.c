@@ -57,11 +57,8 @@ struct _avm_kernel_config ** findConfigArea(void *kernelBuffer, void *dtbLocatio
 {
 	if (kernelBuffer < dtbLocation)
 	{
-		// previous 4K boundary should be the start of the config area
-		size_t dtbOffset  = (size_t)dtbLocation - (size_t)kernelBuffer;
-		size_t dtbSegment = (((dtbOffset + kernelLoadAddr) >> 12) << 12); // target address space
-
-		struct _avm_kernel_config **configArea = (struct _avm_kernel_config **) ((size_t)kernelBuffer + (dtbSegment - kernelLoadAddr)); // host address space
+		uint32_t kernelSegmentStart = determineConfigAreaKernelSegment(kernelLoadAddr + (uint32_t)(dtbLocation - kernelBuffer)); // target address space
+		struct _avm_kernel_config **configArea = (struct _avm_kernel_config **) ((size_t)kernelBuffer + (kernelSegmentStart - kernelLoadAddr)); // host address space
 
 		if (isConsistentConfigArea(configArea, size, NULL))
 			return configArea;

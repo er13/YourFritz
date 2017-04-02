@@ -31,5 +31,6 @@ bool openMemoryMappedFile(struct memoryMappedFile *file, const char *fileName, c
 void closeMemoryMappedFile(struct memoryMappedFile *file);
 bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t configSize, bool *swapNeeded);
 void swapEndianess(bool needed, uint32_t *ptr);
+uint32_t determineConfigAreaKernelSegment(uint32_t targetAddressSpacePtr);
 
 #endif

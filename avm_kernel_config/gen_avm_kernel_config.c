@@ -62,8 +62,7 @@ bool relocateConfigArea(struct _avm_kernel_config * *configArea, size_t configSi
 
 	configBase = (uint32_t) configArea;
 	swapEndianess(swapNeeded, (uint32_t *) configArea);
-
-	kernelSegmentStart = (uint32_t) *((uint32_t *) configArea) & 0xFFFFF000;
+	kernelSegmentStart = determineConfigAreaKernelSegment(*((uint32_t *)configArea));
 
 	entry = (struct _avm_kernel_config *) (*((uint32_t *) configArea) - kernelSegmentStart + configBase);
 	*configArea = entry;
