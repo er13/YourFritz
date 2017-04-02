@@ -58,7 +58,7 @@ struct _avm_kernel_config ** findConfigArea(void *kernelBuffer, void *dtbLocatio
 	if (kernelBuffer < dtbLocation)
 	{
 		uint32_t kernelSegmentStart = determineConfigAreaKernelSegment(kernelLoadAddr + (uint32_t)(dtbLocation - kernelBuffer)); // target address space
-		struct _avm_kernel_config **configArea = (struct _avm_kernel_config **) ((size_t)kernelBuffer + (kernelSegmentStart - kernelLoadAddr)); // host address space
+		struct _avm_kernel_config **configArea = (struct _avm_kernel_config **) targetPtr2HostPtr(kernelSegmentStart, kernelLoadAddr, kernelBuffer); // host address space
 
 		if (isConsistentConfigArea(configArea, size, NULL))
 			return configArea;

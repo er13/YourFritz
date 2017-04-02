@@ -168,7 +168,7 @@ bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t conf
 	kernelSegmentStart = determineConfigAreaKernelSegment(ptrValue);
 
 	// first value has to point to the array
-	if ((ptrValue - kernelSegmentStart) != ((uint32_t) arrayStart - (uint32_t) configArea))
+	if (targetPtr2HostPtr(ptrValue, kernelSegmentStart, configArea) != arrayStart)
 		return false;
 
 	// check each entry->config pointer, if its value is in range
@@ -201,4 +201,9 @@ void swapEndianess(bool needed, uint32_t *ptr)
 uint32_t determineConfigAreaKernelSegment(uint32_t targetAddressSpacePtr)
 {
 	return (targetAddressSpacePtr & 0xFFFFF000);
+}
+
+void* targetPtr2HostPtr(uint32_t targetAddressSpacePtr, uint32_t targetAddressSpaceBasePtr, void* hostAddressSpaceBasePtr)
+{
+	return (void*) ((char *)hostAddressSpaceBasePtr + (targetAddressSpacePtr - targetAddressSpaceBasePtr));
 }

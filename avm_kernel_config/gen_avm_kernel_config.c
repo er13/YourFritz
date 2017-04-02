@@ -50,7 +50,6 @@ bool relocateConfigArea(struct _avm_kernel_config * *configArea, size_t configSi
 {
 	bool swapNeeded;
 	uint32_t kernelSegmentStart;
-	uint32_t configBase;
 	struct _avm_kernel_config * entry;
 
 	//  - the configuration area is aligned on a 4K boundary and the first 32 bit contain a
@@ -60,11 +59,10 @@ bool relocateConfigArea(struct _avm_kernel_config * *configArea, size_t configSi
 
 	if (!isConsistentConfigArea(configArea, configSize, &swapNeeded)) return false;
 
-	configBase = (uint32_t) configArea;
 	swapEndianess(swapNeeded, (uint32_t *) configArea);
 	kernelSegmentStart = determineConfigAreaKernelSegment(*((uint32_t *)configArea));
 
-	entry = (struct _avm_kernel_config *) (*((uint32_t *) configArea) - kernelSegmentStart + configBase);
+	entry = (struct _avm_kernel_config *) targetPtr2HostPtr(*((uint32_t *)configArea), kernelSegmentStart, configArea);
 	*configArea = entry;
 
 	if (entry == NULL) return false;
@@ -74,7 +72,7 @@ bool relocateConfigArea(struct _avm_kernel_config * *configArea, size_t configSi
 	while (entry->config != NULL)
 	{
 		swapEndianess(swapNeeded, (uint32_t *) &entry->config);
-		entry->config = (void *) ((uint32_t) entry->config - kernelSegmentStart + configBase);
+		entry->config = (void *) targetPtr2HostPtr((uint32_t)entry->config, kernelSegmentStart, configArea);
 
 		if ((int) entry->tag == avm_kernel_config_tags_modulememory)
 		{
@@ -84,7 +82,7 @@ bool relocateConfigArea(struct _avm_kernel_config * *configArea, size_t configSi
 			while (module->name != NULL)
 			{
 				swapEndianess(swapNeeded, (uint32_t *) &module->name);
-				module->name = (char *) ((uint32_t) module->name - kernelSegmentStart + configBase);
+				module->name = (char *) targetPtr2HostPtr((uint32_t)module->name, kernelSegmentStart, configArea);
 				swapEndianess(swapNeeded, &module->size);
 
 				module++;

@@ -32,5 +32,6 @@ void closeMemoryMappedFile(struct memoryMappedFile *file);
 bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t configSize, bool *swapNeeded);
 void swapEndianess(bool needed, uint32_t *ptr);
 uint32_t determineConfigAreaKernelSegment(uint32_t targetAddressSpacePtr);
+void* targetPtr2HostPtr(uint32_t targetAddressSpacePtr, uint32_t targetAddressSpaceBasePtr, void* hostAddressSpaceBasePtr);
 
 #endif
