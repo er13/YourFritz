@@ -20,6 +20,8 @@
  *                                                                     *
  ***********************************************************************/
 
+#include <arpa/inet.h>
+
 #include "avm_kernel_config_helpers.h"
 
 void usage()
@@ -105,17 +107,14 @@ void processDeviceTreeEntry(struct _avm_kernel_config* entry)
 #endif
 
 	unsigned int subRev = entry->tag - avm_kernel_config_tags_device_tree_subrev_0;
-	uint32_t dtbSize = *(((uint32_t *) entry->config) + 1);
+
+	// the 'dtc' compiler always emits this value in 'big endian'
+	// (using ASM_EMIT_BELONG in 'flattree.c' - see there)
+	uint32_t dtbSize = ntohl(*(((uint32_t *) entry->config) + 1));
 
 	fprintf(stdout, "\n"); // empty line as optical delimiter in front of DTB dump
 	fprintf(stdout, ".L_avm_device_tree_subrev_%u:\n", subRev);
 	fprintf(stdout, "\tAVM_DEVICE_TREE_BLOB\t%u\n", subRev);
-
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-	// the 'dtc' compiler always emits this value in 'big endian' (using ASM_EMIT_BELONG
-	// in 'flattree.c' - see there)
-	swapEndianess(true, &dtbSize);
-#endif
 
 	register uint8_t * source = (uint8_t *) entry->config;
 	while (dtbSize > 0)

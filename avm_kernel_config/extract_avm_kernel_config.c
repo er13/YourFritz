@@ -22,6 +22,7 @@
 
 #include "avm_kernel_config_helpers.h"
 #include <libfdt.h>
+#include <arpa/inet.h>
 
 void usage()
 {
@@ -150,13 +151,8 @@ void * findDeviceTreeImage(void *haystack, size_t haystackSize, void *needle, si
 void * locateDeviceTreeSignature(void *kernelBuffer, size_t kernelSize)
 {
 	void *		location = NULL;
-	uint32_t	signature = FDT_MAGIC;
+	uint32_t	signature = ntohl(FDT_MAGIC); // DTB signature is stored in 'big endian'
 	uint32_t *	ptr = (uint32_t *) kernelBuffer;
-
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-	// the DTB signature is store in 'big endian' => swap needed, if we're running on 'little endian' machine
-	swapEndianess(true, &signature);
-#endif
 
 	while ((void *) ptr < (kernelBuffer + kernelSize))
 	{
