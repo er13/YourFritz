@@ -79,7 +79,7 @@ void closeMemoryMappedFile(struct memoryMappedFile *file)
 
 }
 
-bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t configSize, bool *swapNeeded, uint32_t *derived_avm_kernel_config_tags_last)
+bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t configSize, bool *swapNeeded)
 {
 	uint32_t *					arrayStart = NULL;
 	uint32_t *					arrayEnd = NULL;
@@ -184,8 +184,6 @@ bool isConsistentConfigArea(struct _avm_kernel_config * *configArea, size_t conf
 	// we may be sure here, that the endianess was detected successful
 	if (swapNeeded)
 		*swapNeeded = assumeSwapped;
-	if (derived_avm_kernel_config_tags_last)
-		*derived_avm_kernel_config_tags_last = lastTag;
 	return true;
 }
 

@@ -63,7 +63,7 @@ struct _avm_kernel_config ** findConfigArea(void *kernelBuffer, void *dtbLocatio
 
 		struct _avm_kernel_config **configArea = (struct _avm_kernel_config **) ((size_t)kernelBuffer + (dtbSegment - kernelLoadAddr)); // host address space
 
-		if (isConsistentConfigArea(configArea, size, NULL, NULL))
+		if (isConsistentConfigArea(configArea, size, NULL))
 			return configArea;
 	}
 

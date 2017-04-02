@@ -12,8 +12,8 @@ enum _avm_kernel_config_tags {
 	avm_kernel_config_tags_version_info,
 	avm_kernel_config_tags_hw_config,
 	avm_kernel_config_tags_cache_config,
+#if !defined(USE_STRIPPED_AVM_KERNEL_CONFIG_H)
 	avm_kernel_config_tags_device_tree_subrev_0,  /* subrev müssen aufeinander folgen */
-#if 0 /* UNUSED */
 	avm_kernel_config_tags_device_tree_subrev_1,
 	avm_kernel_config_tags_device_tree_subrev_2,
 	avm_kernel_config_tags_device_tree_subrev_3,
@@ -275,7 +275,7 @@ enum _avm_kernel_config_tags {
 #endif
 };
 
-#if 0 /* UNUSED */
+#if !defined(USE_STRIPPED_AVM_KERNEL_CONFIG_H)
 #define avm_subrev_max \
 	(avm_kernel_config_tags_device_tree_subrev_last - \
 	 avm_kernel_config_tags_device_tree_subrev_0 + 1)
@@ -297,7 +297,7 @@ struct _avm_kernel_version_info {
 	char firmwarestring[128];
 };
 
-#if 0 /* UNUSED */
+#if !defined(USE_STRIPPED_AVM_KERNEL_CONFIG_H)
 extern unsigned char *avm_kernel_config_device_tree[avm_kernel_config_tags_device_tree_subrev_last - avm_kernel_config_tags_device_tree_subrev_0 + 1];
 #endif
 
