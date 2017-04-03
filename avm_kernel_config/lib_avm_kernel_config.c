@@ -132,6 +132,54 @@ bool isConsistentConfigArea(void *configArea, size_t configSize, bool *swapNeede
 	return true;
 }
 
+bool relocateConfigArea(void *configArea, size_t configSize)
+{
+	bool swapNeeded;
+	uint32_t kernelSegmentStart;
+	struct _avm_kernel_config * entry;
+
+	//  - the configuration area is aligned on a 4K boundary and the first 32 bit contain a
+	//    pointer to an 'struct _avm_kernel_config' array
+	//  - we take the first 32 bit value from the dump and align this pointer to 4K to get
+	//    the start address of the area in the linked kernel
+
+	if (!isConsistentConfigArea(configArea, configSize, &swapNeeded)) return false;
+
+	swapEndianess(swapNeeded, (uint32_t *) configArea);
+	kernelSegmentStart = determineConfigAreaKernelSegment(*((uint32_t *)configArea));
+
+	entry = (struct _avm_kernel_config *) targetPtr2HostPtr(*((uint32_t *)configArea), kernelSegmentStart, configArea);
+	*((struct _avm_kernel_config **)configArea) = entry;
+
+	swapEndianess(swapNeeded, &entry->tag);
+
+	while (entry->config != NULL)
+	{
+		swapEndianess(swapNeeded, (uint32_t *) &entry->config);
+		entry->config = (void *) targetPtr2HostPtr((uint32_t)entry->config, kernelSegmentStart, configArea);
+
+		if ((int) entry->tag == avm_kernel_config_tags_modulememory)
+		{
+			// only _kernel_modulmemory_config entries need relocation of members
+			struct _kernel_modulmemory_config * module = (struct _kernel_modulmemory_config *) entry->config;
+
+			while (module->name != NULL)
+			{
+				swapEndianess(swapNeeded, (uint32_t *) &module->name);
+				module->name = (char *) targetPtr2HostPtr((uint32_t)module->name, kernelSegmentStart, configArea);
+				swapEndianess(swapNeeded, &module->size);
+
+				module++;
+			}
+		}
+
+		entry++;
+		swapEndianess(swapNeeded, &entry->tag);
+	}
+
+	return true;
+}
+
 void swapEndianess(bool needed, uint32_t *ptr)
 {
 

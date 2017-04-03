@@ -12,6 +12,7 @@
 #endif
 
 bool isConsistentConfigArea(void *configArea, size_t configSize, bool *swapNeeded);
+bool relocateConfigArea(void *configArea, size_t configSize);
 
 void swapEndianess(bool needed, uint32_t *ptr);
 
