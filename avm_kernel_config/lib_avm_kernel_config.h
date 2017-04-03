@@ -19,4 +19,7 @@ void swapEndianess(bool needed, uint32_t *ptr);
 uint32_t determineConfigAreaKernelSegment(uint32_t targetAddressSpacePtr);
 void* targetPtr2HostPtr(uint32_t targetAddressSpacePtr, uint32_t targetAddressSpaceBasePtr, void* hostAddressSpaceBasePtr);
 
+struct _avm_kernel_config* findEntryByTag(struct _avm_kernel_config * *configArea, enum _avm_kernel_config_tags tag);
+bool isDeviceTreeEntry(struct _avm_kernel_config* entry);
+
 #endif

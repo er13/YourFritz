@@ -45,15 +45,6 @@ void usage()
 
 }
 
-bool isDeviceTreeEntry(struct _avm_kernel_config* entry)
-{
-	if (entry == NULL || entry->config == NULL)
-		return false;
-
-	// entry->config is assumed to be already relocated
-	return (fdt_magic(entry->config) == FDT_MAGIC) && (fdt_check_header(entry->config) == 0);
-}
-
 void processDeviceTreeEntry(struct _avm_kernel_config* entry, unsigned int subRev)
 {
 	if (!isDeviceTreeEntry(entry))
@@ -105,20 +96,6 @@ void processModuleMemoryEntry(struct _avm_kernel_config* entry)
 	fprintf(stdout, "\tAVM_MODULE_MEMORY\t0\n");
 }
 
-struct _avm_kernel_config* findEntry(struct _avm_kernel_config * *configArea, enum _avm_kernel_config_tags tag)
-{
-	if (*configArea == NULL)
-		return NULL;
-
-	for (struct _avm_kernel_config * entry = *configArea; entry->config != NULL; entry++)
-	{
-		if (entry->tag == tag)
-			return entry;
-	}
-
-	return NULL;
-}
-
 enum _avm_kernel_config_tags derive_device_tree_subrev_0(struct _avm_kernel_config * *configArea)
 {
 	// device tree for subrevision 0 is the fallback entry and may be considered as 'always present', if FDTs exist at all
@@ -142,8 +119,8 @@ enum _avm_kernel_config_tags derive_device_tree_subrev_0(struct _avm_kernel_conf
 
 int processConfigArea(struct _avm_kernel_config * *configArea)
 {
-	struct _avm_kernel_config *moduleMemoryEntry = findEntry(configArea, avm_kernel_config_tags_modulememory);
-	struct _avm_kernel_config *versionInfoEntry  = findEntry(configArea, avm_kernel_config_tags_version_info);
+	struct _avm_kernel_config *moduleMemoryEntry = findEntryByTag(configArea, avm_kernel_config_tags_modulememory);
+	struct _avm_kernel_config *versionInfoEntry  = findEntryByTag(configArea, avm_kernel_config_tags_version_info);
 
 	enum _avm_kernel_config_tags derived_device_tree_subrev_0 = derive_device_tree_subrev_0(configArea);
 #if !defined(USE_STRIPPED_AVM_KERNEL_CONFIG_H)

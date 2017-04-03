@@ -22,6 +22,8 @@
 
 #include <stdlib.h>
 
+#include <libfdt.h>
+
 #include "lib_avm_kernel_config.h"
 
 bool isConsistentConfigArea(void *configArea, size_t configSize, bool *swapNeeded)
@@ -199,4 +201,27 @@ uint32_t determineConfigAreaKernelSegment(uint32_t targetAddressSpacePtr)
 void* targetPtr2HostPtr(uint32_t targetAddressSpacePtr, uint32_t targetAddressSpaceBasePtr, void* hostAddressSpaceBasePtr)
 {
 	return (void*) ((char *)hostAddressSpaceBasePtr + (targetAddressSpacePtr - targetAddressSpaceBasePtr));
+}
+
+struct _avm_kernel_config* findEntryByTag(struct _avm_kernel_config * *configArea, enum _avm_kernel_config_tags tag)
+{
+	if (*configArea == NULL)
+		return NULL;
+
+	for (struct _avm_kernel_config * entry = *configArea; entry->config != NULL; entry++)
+	{
+		if (entry->tag == tag)
+			return entry;
+	}
+
+	return NULL;
+}
+
+bool isDeviceTreeEntry(struct _avm_kernel_config* entry)
+{
+	if (entry == NULL || entry->config == NULL)
+		return false;
+
+	// entry->config is assumed to be already relocated
+	return (fdt_magic(entry->config) == FDT_MAGIC) && (fdt_check_header(entry->config) == 0);
 }
