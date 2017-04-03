@@ -53,12 +53,12 @@ void usage()
 	fprintf(stderr, "\n-l option must be used to make guessing the config area location possible.\n");
 }
 
-struct _avm_kernel_config ** findConfigArea(void *kernelBuffer, void *dtbLocation, uint32_t kernelLoadAddr /* target address space */, size_t size)
+void * findConfigArea(void *kernelBuffer, void *dtbLocation, uint32_t kernelLoadAddr /* target address space */, size_t size)
 {
 	if (kernelBuffer < dtbLocation)
 	{
 		uint32_t kernelSegmentStart = determineConfigAreaKernelSegment(kernelLoadAddr + (uint32_t)(dtbLocation - kernelBuffer)); // target address space
-		struct _avm_kernel_config **configArea = (struct _avm_kernel_config **) targetPtr2HostPtr(kernelSegmentStart, kernelLoadAddr, kernelBuffer); // host address space
+		void *configArea = targetPtr2HostPtr(kernelSegmentStart, kernelLoadAddr, kernelBuffer); // host address space
 
 		if (isConsistentConfigArea(configArea, size, NULL))
 			return configArea;
@@ -289,11 +289,11 @@ int main(int argc, char * argv[])
 
 		if (dtbLocation != NULL)
 		{
-			struct _avm_kernel_config * *configArea = findConfigArea(kernel.fileBuffer, dtbLocation, kernelLoadAddr, size);
+			void *configArea = findConfigArea(kernel.fileBuffer, dtbLocation, kernelLoadAddr, size);
 
 			if (configArea != NULL)
 			{
-				ssize_t	written = write(1, (void *) configArea, size);
+				ssize_t written = write(1, configArea, size);
 
 				if (written == size)
 				{

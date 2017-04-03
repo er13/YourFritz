@@ -44,7 +44,7 @@ void usage()
 
 }
 
-bool relocateConfigArea(struct _avm_kernel_config * *configArea, size_t configSize)
+bool relocateConfigArea(void *configArea, size_t configSize)
 {
 	bool swapNeeded;
 	uint32_t kernelSegmentStart;
@@ -61,7 +61,7 @@ bool relocateConfigArea(struct _avm_kernel_config * *configArea, size_t configSi
 	kernelSegmentStart = determineConfigAreaKernelSegment(*((uint32_t *)configArea));
 
 	entry = (struct _avm_kernel_config *) targetPtr2HostPtr(*((uint32_t *)configArea), kernelSegmentStart, configArea);
-	*configArea = entry;
+	*((struct _avm_kernel_config **)configArea) = entry;
 
 	if (entry == NULL) return false;
 
