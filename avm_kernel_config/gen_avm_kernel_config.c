@@ -23,8 +23,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <arpa/inet.h>
-
 #include <libfdt.h>
 
 #include "avm_kernel_config_helpers.h"
@@ -102,7 +100,7 @@ bool isDeviceTreeEntry(struct _avm_kernel_config* entry)
 		return false;
 
 	// entry->config is assumed to be already relocated
-	return ntohl(FDT_MAGIC) == (*((uint32_t *) entry->config));
+	return (fdt_magic(entry->config) == FDT_MAGIC) && (fdt_check_header(entry->config) == 0);
 }
 
 void processDeviceTreeEntry(struct _avm_kernel_config* entry, unsigned int subRev)
@@ -110,14 +108,11 @@ void processDeviceTreeEntry(struct _avm_kernel_config* entry, unsigned int subRe
 	if (!isDeviceTreeEntry(entry))
 		return;
 
-	// the 'dtc' compiler always emits this value in 'big endian'
-	// (using ASM_EMIT_BELONG in 'flattree.c' - see there)
-	uint32_t dtbSize = ntohl(*(((uint32_t *) entry->config) + 1));
-
 	fprintf(stdout, "\n"); // empty line as optical delimiter in front of DTB dump
 	fprintf(stdout, ".L_avm_device_tree_subrev_%u:\n", subRev);
 	fprintf(stdout, "\tAVM_DEVICE_TREE_BLOB\t%u\n", subRev);
 
+	uint32_t dtbSize = fdt_totalsize(entry->config);
 	register uint8_t * source = (uint8_t *) entry->config;
 	while (dtbSize > 0)
 	{
