@@ -9,12 +9,12 @@ BINARIES := gen_$(BASENAME) extract_$(BASENAME)
 #
 # source files
 #
-HELPER_SRCS = lib_$(BASENAME).c
+HELPER_SRCS = lib_$(BASENAME).c memory_mapped_file.c
 BIN_SRCS = gen_$(BASENAME).c extract_$(BASENAME).c
 #
 # header files
 #
-HELPER_HDRS = lib_$(BASENAME).h
+HELPER_HDRS = lib_$(BASENAME).h memory_mapped_file.h
 BIN_HDRS = ./linux/include/uapi/linux/$(BASENAME).h $(BASENAME)_macros.h
 #
 # object files

@@ -21,63 +21,8 @@
  ***********************************************************************/
 
 #include <stdlib.h>
-#include <stdio.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <unistd.h>
 
 #include "lib_avm_kernel_config.h"
-
-bool openMemoryMappedFile(struct memoryMappedFile *file, const char *fileName, const char *fileDescription, int openFlags, int prot, int flags)
-{
-	bool			result = false;
-
-	file->fileMapped = false;
-	file->fileBuffer = NULL;
-	file->fileName = fileName;
-	file->fileDescription = fileDescription;
-
-	if ((file->fileDescriptor = open(file->fileName, openFlags)) != -1)
-	{
-		if (fstat(file->fileDescriptor, &file->fileStat) != -1)
-		{
-			if ((file->fileBuffer = (void *) mmap(NULL, file->fileStat.st_size, prot, flags, file->fileDescriptor, 0)) != MAP_FAILED)
-			{
-				file->fileMapped = true;
-				result = true;
-			}
-			else fprintf(stderr, "Error %d mapping %u bytes of %s file '%s' to memory.\n", errno, (int) file->fileStat.st_size, file->fileDescription, file->fileName);
-		}
-		else fprintf(stderr, "Error %d getting file stats for '%s'.\n", errno, file->fileName);
-
-		if (result == false)
-		{
-			close(file->fileDescriptor);
-			file->fileDescriptor = -1;
-		}
-	}
-	else fprintf(stderr, "Error %d opening %s file '%s'.\n", errno, file->fileDescription, file->fileName);
-
-	return result;
-}
-
-void closeMemoryMappedFile(struct memoryMappedFile *file)
-{
-
-	if (file->fileMapped)
-	{
-		munmap(file->fileBuffer, file->fileStat.st_size);
-		file->fileBuffer = NULL;
-		file->fileMapped = false;
-	}
-
-	if (file->fileDescriptor != -1)
-	{
-		close(file->fileDescriptor);
-		file->fileDescriptor = -1;
-	}
-
-}
 
 bool isConsistentConfigArea(void *configArea, size_t configSize, bool *swapNeeded)
 {

@@ -30,6 +30,7 @@
 #include <libfdt.h>
 
 #include "lib_avm_kernel_config.h"
+#include "memory_mapped_file.h"
 
 void usage()
 {
