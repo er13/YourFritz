@@ -26,7 +26,7 @@
 
 #include "lib_avm_kernel_config.h"
 
-static void swapEndianess(bool needed, uint32_t *ptr)
+static void swapEndianness(bool needed, uint32_t *ptr)
 {
 	if (!needed)
 		return;
@@ -100,12 +100,12 @@ bool isConsistentConfigArea(void *configArea, size_t configSize, bool *swapNeede
 	// stripped "avm_kernel_config.h" intentionally doesn't provide avm_kernel_config_tags_last symbol
 	#define MAX_PLAUSIBLE_AVM_KERNEL_CONFIG_TAGS_ENUM (0x000001FF)
 	assumeSwapped = (lastTag <= MAX_PLAUSIBLE_AVM_KERNEL_CONFIG_TAGS_ENUM ? false : true);
-	swapEndianess(assumeSwapped, &lastTag);
+	swapEndianness(assumeSwapped, &lastTag);
 	if (!(avm_kernel_config_tags_undef < lastTag && lastTag <= MAX_PLAUSIBLE_AVM_KERNEL_CONFIG_TAGS_ENUM))
 		return false;
 #else
 	assumeSwapped = (lastTag <= avm_kernel_config_tags_last ? false : true);
-	swapEndianess(assumeSwapped, &lastTag);
+	swapEndianness(assumeSwapped, &lastTag);
 	if (lastTag != avm_kernel_config_tags_last)
 		return false;
 #endif
@@ -114,7 +114,7 @@ bool isConsistentConfigArea(void *configArea, size_t configSize, bool *swapNeede
 	for (entry = (struct _avm_kernel_config *) arrayStart; entry->config != NULL; entry++)
 	{
 		uint32_t tag = entry->tag;
-		swapEndianess(assumeSwapped, &tag);
+		swapEndianness(assumeSwapped, &tag);
 		// invalid value means, our assumption was wrong
 		if (!(avm_kernel_config_tags_undef < tag && tag <= lastTag)) /* that lastTag is in range has been validated before */
 			return false;
@@ -122,7 +122,7 @@ bool isConsistentConfigArea(void *configArea, size_t configSize, bool *swapNeede
 
 	// compute the start of the kernel "segment" config area is located within (target address space)
 	ptrValue = *base;
-	swapEndianess(assumeSwapped, &ptrValue);
+	swapEndianness(assumeSwapped, &ptrValue);
 	kernelSegmentStart = determineConfigAreaKernelSegment(ptrValue);
 
 	// first value has to point to the array
@@ -133,7 +133,7 @@ bool isConsistentConfigArea(void *configArea, size_t configSize, bool *swapNeede
 	for (entry = (struct _avm_kernel_config *) arrayStart; entry->config != NULL; entry++)
 	{
 		ptrValue = (uint32_t) entry->config;
-		swapEndianess(assumeSwapped, &ptrValue);
+		swapEndianness(assumeSwapped, &ptrValue);
 
 		if (ptrValue <= kernelSegmentStart) return false; // points before, impossible
 		if (ptrValue - kernelSegmentStart > configSize) return false; // points after
@@ -159,17 +159,17 @@ struct _avm_kernel_config* * relocateConfigArea(void *configArea, size_t configS
 	if (!isConsistentConfigArea(configArea, configSize, &swapNeeded))
 		return NULL;
 
-	swapEndianess(swapNeeded, (uint32_t *) configArea);
+	swapEndianness(swapNeeded, (uint32_t *) configArea);
 	kernelSegmentStart = determineConfigAreaKernelSegment(*((uint32_t *)configArea));
 
 	entry = (struct _avm_kernel_config *) targetPtr2HostPtr(*((uint32_t *)configArea), kernelSegmentStart, configArea);
 	*((struct _avm_kernel_config **)configArea) = entry;
 
-	swapEndianess(swapNeeded, &entry->tag);
+	swapEndianness(swapNeeded, &entry->tag);
 
 	while (entry->config != NULL)
 	{
-		swapEndianess(swapNeeded, (uint32_t *) &entry->config);
+		swapEndianness(swapNeeded, (uint32_t *) &entry->config);
 		entry->config = (void *) targetPtr2HostPtr((uint32_t)entry->config, kernelSegmentStart, configArea);
 
 		if ((int) entry->tag == avm_kernel_config_tags_modulememory)
@@ -179,16 +179,16 @@ struct _avm_kernel_config* * relocateConfigArea(void *configArea, size_t configS
 
 			while (module->name != NULL)
 			{
-				swapEndianess(swapNeeded, (uint32_t *) &module->name);
+				swapEndianness(swapNeeded, (uint32_t *) &module->name);
 				module->name = (char *) targetPtr2HostPtr((uint32_t)module->name, kernelSegmentStart, configArea);
-				swapEndianess(swapNeeded, &module->size);
+				swapEndianness(swapNeeded, &module->size);
 
 				module++;
 			}
 		}
 
 		entry++;
-		swapEndianess(swapNeeded, &entry->tag);
+		swapEndianness(swapNeeded, &entry->tag);
 	}
 
 	return (struct _avm_kernel_config **)configArea;
