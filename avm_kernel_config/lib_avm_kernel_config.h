@@ -1,6 +1,6 @@
 // vi: set tabstop=4 syntax=c :
-#ifndef AVM_KERNEL_CONFIG_HELPERS_H
-#define AVM_KERNEL_CONFIG_HELPERS_H
+#ifndef LIB_AVM_KERNEL_CONFIG_H
+#define LIB_AVM_KERNEL_CONFIG_H
 
 #include <stdbool.h>
 #include <inttypes.h>

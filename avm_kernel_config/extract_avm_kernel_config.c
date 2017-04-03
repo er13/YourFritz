@@ -29,7 +29,7 @@
 
 #include <libfdt.h>
 
-#include "avm_kernel_config_helpers.h"
+#include "lib_avm_kernel_config.h"
 
 void usage()
 {
