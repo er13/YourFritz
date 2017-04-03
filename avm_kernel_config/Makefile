@@ -5,12 +5,12 @@ BASENAME := avm_kernel_config
 #
 # target binary
 #
-BINARIES := gen_$(BASENAME) extract_$(BASENAME)
+BINARIES := $(BASENAME).bin2asm $(BASENAME).extract
 #
 # source files
 #
 HELPER_SRCS = lib_$(BASENAME).c memory_mapped_file.c
-BIN_SRCS = gen_$(BASENAME).c extract_$(BASENAME).c
+BIN_SRCS = $(BASENAME).bin2asm.c $(BASENAME).extract.c
 #
 # header files
 #

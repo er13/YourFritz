@@ -31,11 +31,11 @@
 void usage()
 {
 
-	fprintf(stderr, "gen_avm_kernel_config - generate a kernel config source file\n\n");
+	fprintf(stderr, "avm_kernel_config.bin2asm - generate a kernel config source file\n\n");
 	fprintf(stderr, "(C) 2016 P. Hämmerlein (http://www.yourfritz.de)\n\n");
 	fprintf(stderr, "Licensed under GPLv2, see LICENSE file from source repository.\n\n");
 	fprintf(stderr, "Usage:\n\n");
-	fprintf(stderr, "gen_avm_kernel_config <binary_config_area_file>\n");
+	fprintf(stderr, "avm_kernel_config.bin2asm <binary_config_area_file>\n");
 	fprintf(stderr, "\nThe configuration area dump is read and an assembler source file");
 	fprintf(stderr, "\nis created from its content. This file may later be compiled into");
 	fprintf(stderr, "\nan object file ready to be included into an own kernel while");

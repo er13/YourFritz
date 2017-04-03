@@ -34,11 +34,11 @@
 
 void usage()
 {
-	fprintf(stderr, "extract_avm_kernel_config - extract (binary copy of) kernel config area from AVM's kernel\n\n");
+	fprintf(stderr, "avm_kernel_config.extract - extract (binary copy of) kernel config area from AVM's kernel\n\n");
 	fprintf(stderr, "(C) 2016-2017 P. Hämmerlein (http://www.yourfritz.de)\n\n");
 	fprintf(stderr, "Licensed under GPLv2, see LICENSE file from source repository.\n\n");
 	fprintf(stderr, "Usage:\n\n");
-	fprintf(stderr, "extract_avm_kernel_config [ -s <size in KByte> ] [ -l <kernel load address> ] <unpacked_kernel> [<dtb_file>]\n");
+	fprintf(stderr, "avm_kernel_config.extract [ -s <size in KByte> ] [ -l <kernel load address> ] <unpacked_kernel> [<dtb_file>]\n");
 	fprintf(stderr, "\nThe specified DTB content (a compiled OF device tree BLOB) is");
 	fprintf(stderr, "\nsearched in the unpacked kernel and the place, where it's found");
 	fprintf(stderr, "\nis assumed to be within the original kernel config area.\n");
