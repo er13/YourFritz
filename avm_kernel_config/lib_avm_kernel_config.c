@@ -135,8 +135,9 @@ bool isConsistentConfigArea(void *configArea, size_t configSize, bool *swapNeede
 		ptrValue = (uint32_t) entry->config;
 		swapEndianness(assumeSwapped, &ptrValue);
 
-		if (ptrValue < kernelSegmentStart) return false; // points before, impossible
-		if (ptrValue - kernelSegmentStart >= configSize) return false; // points after
+		// check if it points to an address within kernel config area
+		if (!(kernelSegmentStart <= ptrValue && ptrValue < (kernelSegmentStart+configSize)))
+			return false;
 	}
 
 	// we may be sure here, that the endianess was detected successful
