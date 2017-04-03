@@ -12,10 +12,9 @@
 #endif
 
 bool isConsistentConfigArea(void *configArea, size_t configSize, bool *swapNeeded);
-bool relocateConfigArea(void *configArea, size_t configSize);
+struct _avm_kernel_config* * relocateConfigArea(void *configArea, size_t configSize);
 
 void swapEndianess(bool needed, uint32_t *ptr);
-
 uint32_t determineConfigAreaKernelSegment(uint32_t targetAddressSpacePtr);
 void* targetPtr2HostPtr(uint32_t targetAddressSpacePtr, uint32_t targetAddressSpaceBasePtr, void* hostAddressSpaceBasePtr);
 

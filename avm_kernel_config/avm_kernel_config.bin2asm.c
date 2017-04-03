@@ -180,10 +180,9 @@ int main(int argc, char * argv[])
 
 	if (openMemoryMappedFile(&input, argv[1], "input", O_RDONLY | O_SYNC, PROT_WRITE, MAP_PRIVATE))
 	{
-		struct _avm_kernel_config ** configArea = (struct _avm_kernel_config **) input.fileBuffer;
-		size_t configSize = input.fileStat.st_size;
+		struct _avm_kernel_config ** configArea = relocateConfigArea(input.fileBuffer, input.fileStat.st_size);
 
-		if (relocateConfigArea(configArea, configSize))
+		if (configArea != NULL)
 		{
 			returnCode = processConfigArea(configArea);
 		}

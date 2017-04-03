@@ -26,6 +26,7 @@
 
 #include "lib_avm_kernel_config.h"
 
+
 bool isConsistentConfigArea(void *configArea, size_t configSize, bool *swapNeeded)
 {
 	uint32_t *					arrayStart = NULL;
@@ -134,7 +135,7 @@ bool isConsistentConfigArea(void *configArea, size_t configSize, bool *swapNeede
 	return true;
 }
 
-bool relocateConfigArea(void *configArea, size_t configSize)
+struct _avm_kernel_config* * relocateConfigArea(void *configArea, size_t configSize)
 {
 	bool swapNeeded;
 	uint32_t kernelSegmentStart;
@@ -145,7 +146,8 @@ bool relocateConfigArea(void *configArea, size_t configSize)
 	//  - we take the first 32 bit value from the dump and align this pointer to 4K to get
 	//    the start address of the area in the linked kernel
 
-	if (!isConsistentConfigArea(configArea, configSize, &swapNeeded)) return false;
+	if (!isConsistentConfigArea(configArea, configSize, &swapNeeded))
+		return NULL;
 
 	swapEndianess(swapNeeded, (uint32_t *) configArea);
 	kernelSegmentStart = determineConfigAreaKernelSegment(*((uint32_t *)configArea));
@@ -179,7 +181,7 @@ bool relocateConfigArea(void *configArea, size_t configSize)
 		swapEndianess(swapNeeded, &entry->tag);
 	}
 
-	return true;
+	return (struct _avm_kernel_config **)configArea;
 }
 
 void swapEndianess(bool needed, uint32_t *ptr)
