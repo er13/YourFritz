@@ -63,8 +63,6 @@ bool relocateConfigArea(void *configArea, size_t configSize)
 	entry = (struct _avm_kernel_config *) targetPtr2HostPtr(*((uint32_t *)configArea), kernelSegmentStart, configArea);
 	*((struct _avm_kernel_config **)configArea) = entry;
 
-	if (entry == NULL) return false;
-
 	swapEndianess(swapNeeded, &entry->tag);
 
 	while (entry->config != NULL)
