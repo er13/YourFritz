@@ -58,7 +58,7 @@ void * findConfigArea(void *kernelBuffer, void *dtbLocation, uint32_t kernelLoad
 {
 	if (kernelBuffer < dtbLocation)
 	{
-		uint32_t kernelSegmentStart = determineConfigAreaKernelSegment(kernelLoadAddr + (uint32_t)(dtbLocation - kernelBuffer)); // target address space
+		uint32_t kernelSegmentStart = determineConfigAreaKernelSegment(kernelLoadAddr + (uint32_t)((char *)dtbLocation - (char *)kernelBuffer)); // target address space
 		void *configArea = targetPtr2HostPtr(kernelSegmentStart, kernelLoadAddr, kernelBuffer); // host address space
 
 		if (isConsistentConfigArea(configArea, size, NULL))
