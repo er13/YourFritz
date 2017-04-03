@@ -26,6 +26,16 @@
 
 #include "lib_avm_kernel_config.h"
 
+static void swapEndianess(bool needed, uint32_t *ptr)
+{
+	if (!needed)
+		return;
+
+	*ptr =	(*ptr & 0x000000FF) << 24 |
+			(*ptr & 0x0000FF00) << 8 |
+			(*ptr & 0x00FF0000) >> 8 |
+			(*ptr & 0xFF000000) >> 24;
+}
 
 bool isConsistentConfigArea(void *configArea, size_t configSize, bool *swapNeeded)
 {
@@ -182,17 +192,6 @@ struct _avm_kernel_config* * relocateConfigArea(void *configArea, size_t configS
 	}
 
 	return (struct _avm_kernel_config **)configArea;
-}
-
-void swapEndianess(bool needed, uint32_t *ptr)
-{
-
-	if (!needed) return;
-	*ptr = 	(*ptr & 0x000000FF) << 24 | \
-			(*ptr & 0x0000FF00) << 8 | \
-			(*ptr & 0x00FF0000) >> 8 | \
-			(*ptr & 0xFF000000) >> 24;
-
 }
 
 uint32_t determineConfigAreaKernelSegment(uint32_t targetAddressSpacePtr)
