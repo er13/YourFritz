@@ -41,55 +41,57 @@ bool isConsistentConfigArea(void *configArea, size_t configSize, bool *swapNeede
 {
 	uint32_t *					arrayStart = NULL;
 	uint32_t *					arrayEnd = NULL;
-	uint32_t *					ptr = NULL;
-	uint32_t *					base = NULL;
+
 	uint32_t					kernelSegmentStart;
 	uint32_t					lastTag;
+
+	uint32_t *					ptr = NULL;
 	uint32_t					ptrValue;
 	struct _avm_kernel_config *	entry;
+
 	bool						assumeSwapped = false;
 
 	//	- a 32-bit value with more than one byte containing a non-zero value
 	//	  should be a pointer in the config area
 	//	- a value with only one non-zero byte is usually the tag, tags are
-	//	  'enums' and have to be below or equal avm_kernel_config_tags_last
+	//	  'enums' and have to be below or equal to avm_kernel_config_tags_last
 	//	- values without any bit set are expected to be alignments or end of
 	//	  array markers
 	//	- we'll stop at the second 'end of array' marker, assuming we've
 	//	  reached the end of 'struct _avm_kernel_config' array, the tag at
 	//	  this array entry should be equal to avm_kernel_config_tags_last
-	//	- limit search to first 16 KB (4096 * sizeof(uint32_t)), if the whole
-	//	  area is empty
+	//	- limit search to the first 4 KB as DTB and the config area array
+	//	  are located within the same 4 KB "segment"
 
 	ptr = (uint32_t *) configArea;
+	if (*ptr == 0) {
+		// 1st 32-bit word is the pointer to the config area array
+		// and is thus not allowed/expected to be NULL
+		return false;
+	}
 
-	while (ptr <= ((uint32_t *) configArea) + (4096 * sizeof(uint32_t)))
+	while (++ptr < ((uint32_t *) configArea) + (4096 / sizeof(uint32_t)))
 	{
 		if (*ptr != 0)
 		{
-			if (base == NULL) {
-				base = ptr;       // 1st non-zero word is base (pointer)
-			} else if (arrayStart == NULL) {
-				arrayStart = ptr; // 2nd non-zero word is arrayStart
-			} /* else ... */          // all other non-zero words are the content of the config area array => ignore them
+			if (arrayStart == NULL) {
+				arrayStart = ptr;  // 2nd non-zero word is the start of the config area array
+			} /* else ... */       // all other non-zero words are the content of the config area array => ignore them
 		}
 		else
 		{
-			if (base == NULL) {
-				// we don't expect to find zero word before base is set (this actually means the 1st word must be non-zero and it's the base pointer)
-				return false; // no pointer, no config area array => inconsistent config area
-			} else if (arrayStart != NULL) {
-				// 1st zero word after arrayStart => this is arrayEnd
-				// or to be more precise zero word it the config-pointer of the entry with tag avm_kernel_config_tags_last
+			if (arrayStart != NULL) {
+				// 1st zero word after arrayStart => this is the end of the config area array
+				// or to be more precise zero word is the config-pointer of the entry with tag avm_kernel_config_tags_last
 				arrayEnd = ptr + 1; // thus +1, arrayEnd is exclusive
 				break;
-			}
+			} /* else ... */        // zero words before arrayStart are alignment words
 		}
-		ptr++;
 	}
 
 	// if we didn't find one of our pointers, something went wrong
-	if (base == NULL || arrayStart == NULL || arrayEnd == NULL) return false;
+	if (arrayStart == NULL || arrayEnd == NULL)
+		return false;
 
 	// check avm_kernel_config_tags_last entry first
 	entry = (struct _avm_kernel_config *) arrayEnd - 1;
@@ -121,7 +123,7 @@ bool isConsistentConfigArea(void *configArea, size_t configSize, bool *swapNeede
 	}
 
 	// compute the start of the kernel "segment" config area is located within (target address space)
-	ptrValue = *base;
+	ptrValue = *((uint32_t *)configArea);
 	swapEndianness(assumeSwapped, &ptrValue);
 	kernelSegmentStart = determineConfigAreaKernelSegment(ptrValue);
 
@@ -140,9 +142,10 @@ bool isConsistentConfigArea(void *configArea, size_t configSize, bool *swapNeede
 			return false;
 	}
 
-	// we may be sure here, that the endianess was detected successful
+	// we may be sure here that the endianness was detected successfully
 	if (swapNeeded)
 		*swapNeeded = assumeSwapped;
+
 	return true;
 }
 
