@@ -25,8 +25,6 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include <arpa/inet.h>
-
 #include <libfdt.h>
 
 #include "lib_avm_kernel_config.h"
@@ -155,24 +153,13 @@ void * findDeviceTreeImage(void *haystack, size_t haystackSize, void *needle, si
 
 void * locateDeviceTreeSignature(void *kernelBuffer, size_t kernelSize)
 {
-	void *		location = NULL;
-	uint32_t	signature = ntohl(FDT_MAGIC); // DTB signature is stored in 'big endian'
-	uint32_t *	ptr = (uint32_t *) kernelBuffer;
-
-	while ((char *) ptr < ((char *)kernelBuffer + kernelSize))
+	for (char *ptr = (char *)kernelBuffer; ptr < (char *)kernelBuffer + kernelSize; ptr+=4)
 	{
-		if (*ptr == signature) // possibly found the tree
-		{
-			if (fdt_check_header((void *) ptr) == 0)
-			{
-				location = ptr;
-				break;
-			}
-		}
-		ptr++;
+		if ((fdt_magic(ptr) == FDT_MAGIC) && (fdt_check_header(ptr) == 0))
+			return ptr;
 	}
 
-	return location;
+	return NULL;
 }
 
 int main(int argc, char * argv[])
