@@ -122,7 +122,7 @@ void * findDeviceTreeImage(void *haystack, size_t haystackSize, void *needle, si
 				if (matchedSoFar) // compare remaining bytes
 				{
 					uint8_t *	remHaystack = (uint8_t *) sliding;
-					uint8_t *	remNeedle = (uint8_t *) (needle + offsetMatched);
+					uint8_t *	remNeedle = (uint8_t *)needle + offsetMatched;
 					size_t		remSize = needleSize - offsetMatched;
 
 					while (remSize > 0)
@@ -159,7 +159,7 @@ void * locateDeviceTreeSignature(void *kernelBuffer, size_t kernelSize)
 	uint32_t	signature = ntohl(FDT_MAGIC); // DTB signature is stored in 'big endian'
 	uint32_t *	ptr = (uint32_t *) kernelBuffer;
 
-	while ((void *) ptr < (kernelBuffer + kernelSize))
+	while ((char *) ptr < ((char *)kernelBuffer + kernelSize))
 	{
 		if (*ptr == signature) // possibly found the tree
 		{
