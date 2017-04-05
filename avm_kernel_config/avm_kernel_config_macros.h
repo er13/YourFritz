@@ -18,7 +18,7 @@
 
 	.macro	AVM_KERNEL_CONFIG_ENTRY tag, label
 		.int		\tag
-		.ifeq		\tag
+		.ifc		\label,NULL
 			.int	0
 			.align	4
 		.else

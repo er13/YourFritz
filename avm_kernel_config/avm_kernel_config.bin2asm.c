@@ -98,25 +98,31 @@ void processModuleMemoryEntry(struct _avm_kernel_config* entry)
 	fprintf(stdout, "\tAVM_MODULE_MEMORY\t0\n");
 }
 
-enum _avm_kernel_config_tags derive_device_tree_subrev_0(struct _avm_kernel_config * *configArea)
-{
+#define AVM_KERNEL_CONFIG_TAGS_MAX ((enum _avm_kernel_config_tags)(~(uint32_t)0))
+void derive_avm_kernel_config_tags(
+	struct _avm_kernel_config*   *configArea,
+	enum _avm_kernel_config_tags *device_tree_subrev_0,
+	enum _avm_kernel_config_tags *last
+) {
 	// device tree for subrevision 0 is the fallback entry and may be considered as 'always present', if FDTs exist at all
-	enum _avm_kernel_config_tags ret = avm_kernel_config_tags_undef;
+	*device_tree_subrev_0 = AVM_KERNEL_CONFIG_TAGS_MAX;
+	*last                 = AVM_KERNEL_CONFIG_TAGS_MAX;
 
 	if (*configArea != NULL)
 	{
-		for (struct _avm_kernel_config * entry = *configArea; entry->config != NULL; entry++)
+		struct _avm_kernel_config *entry;
+		for (entry = *configArea; entry->config != NULL; entry++)
 		{
 			if (isDeviceTreeEntry(entry))
 			{
 				// smallest tag is assumed to be device_tree_subrev_0
-				if (ret == avm_kernel_config_tags_undef || entry->tag < ret)
-					ret = entry->tag;
+				if (entry->tag < *device_tree_subrev_0)
+					*device_tree_subrev_0 = entry->tag;
 			}
 		}
-	}
 
-	return ret;
+		*last = entry->tag;
+	}
 }
 
 int processConfigArea(struct _avm_kernel_config * *configArea)
@@ -124,11 +130,18 @@ int processConfigArea(struct _avm_kernel_config * *configArea)
 	struct _avm_kernel_config *moduleMemoryEntry = findEntryByTag(configArea, avm_kernel_config_tags_modulememory);
 	struct _avm_kernel_config *versionInfoEntry  = findEntryByTag(configArea, avm_kernel_config_tags_version_info);
 
-	enum _avm_kernel_config_tags derived_device_tree_subrev_0 = derive_device_tree_subrev_0(configArea);
+	enum _avm_kernel_config_tags derived_device_tree_subrev_0;
+	enum _avm_kernel_config_tags derived_last;
+	derive_avm_kernel_config_tags(configArea, &derived_device_tree_subrev_0, &derived_last);
 #if !defined(USE_STRIPPED_AVM_KERNEL_CONFIG_H)
 	if (derived_device_tree_subrev_0 != avm_kernel_config_tags_device_tree_subrev_0)
 	{
 		fprintf(stderr, "derived_device_tree_subrev_0 is expected to be equal to avm_kernel_config_tags_device_tree_subrev_0. Check the reasons and adjust the code if necessary.\n");
+		exit(2);
+	}
+	if (derived_last != avm_kernel_config_tags_last)
+	{
+		fprintf(stderr, "derived_last is expected to be equal to avm_kernel_config_tags_last. Check the reasons and adjust the code if necessary.\n");
 		exit(2);
 	}
 #endif
@@ -152,7 +165,7 @@ int processConfigArea(struct _avm_kernel_config * *configArea)
 		}
 	}
 
-	fprintf(stdout, "\tAVM_KERNEL_CONFIG_ENTRY\t0\n");
+	fprintf(stdout, "\tAVM_KERNEL_CONFIG_ENTRY\t%u, NULL\n", derived_last);
 
 	for (struct _avm_kernel_config * entry = *configArea; entry->config != NULL; entry++)
 	{
