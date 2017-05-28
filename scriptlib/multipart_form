@@ -74,7 +74,7 @@ multipart_form()
 
 	read_octals()
 	{
-		while read index value zero; do
+		while read index zero value; do
 			v=0
 			while [ ${#value} -gt 0 ]; do
 				v=$(( ( v << 3 ) + $(expr "$value" : "\([0-9]\).*") ))
@@ -86,13 +86,13 @@ multipart_form()
 
 	random_value()
 	{
-		dd if=/dev/urandom bs=${1:-8} count=1 2>/dev/null | cmp -l - /dev/zero 2>/dev/null | read_octals
+		dd if=/dev/urandom bs=${1:-8} count=1 2>/dev/null | cmp -l -- /dev/zero - 2>/dev/null | read_octals
 	}
 
 	int_mktmp()
 	{
 		command -v mktemp 2>/dev/null 1>&2 && name="$(mktemp $* 2>/dev/null)"
-		if [ $? -eq 127 -o -z $name ]; then # mktemp is missing, emulation needed
+		if [ $? -eq 127 ] || [ -z $name ]; then # mktemp is missing, emulation needed
 			tmp="$TMP"
 			[ ${#tmp} -eq 0 ] && tmp="$TMPDIR"
 			[ ${#tmp} -eq 0 ] && tmp="/tmp"

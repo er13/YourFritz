@@ -73,7 +73,7 @@ __yf_helpers_contains()
 __yf_helpers_string_compare()
 (
 	cmp "$1" "$2" 2>/dev/null 1>&2 && printf "0" && return 0
-	res=$(cmp -l "$1" "$2" 2>/dev/null | \
+	res=$(cmp -l -- "$1" "$2" 2>/dev/null | \
 			while read offset left right; do
 				[ $left -lt $right ] && res=-1 || res=1
 				printf "%d" $res
@@ -167,10 +167,12 @@ __yf_helpers_add_dependencies()
 		dep="$(__yf_helpers_get_line "$f" F)"
 		[ ${#dep} -eq 0 ] && continue
 		for d in $dep; do
-			deps="$deps ${__YF_SCRIPT_FUNCTIONS_DIR}/${d}.function"
+			fn="${__YF_SCRIPT_FUNCTIONS_DIR}/${d}.function"
+			__yf_helpers_contains "$deps" "$fn" && continue
+			deps="$deps $fn $(__yf_helpers_add_dependencies "$fn")"
 		done
 	done
-	__yf_helpers_unique "$deps"
+	printf "%s" "$deps"
 )
 __yf_helpers_find_functions()
 (
@@ -206,7 +208,7 @@ __yf_helpers_message()
 	e="$(printf %b \\033)"
 	s=$1
 	shift
-	[ "$s" = "F" -o "$s" = "E" ] && c=1
+	( [ "$s" = "F" ] || [ "$s" = "E" ] ) && c=1
 	[ "$s" = "W" ] && c=3
 	[ "$s" = "I" ] && c=2
 	s=$(printf "[%c[1;3%dm%c%c[0m]" "$e" "$c" "$s" "$e")
@@ -252,7 +254,7 @@ __yf_e="$(printf %b \\033)"
 }
 __yf_functions="$(__yf_helpers_find_functions)"
 [ $? -eq 0 ] || eval $(__yf_helpers_exit) 129
-__yf_functions="$(__yf_helpers_add_dependencies "${__yf_functions}")"
+__yf_functions="$(__yf_helpers_unique "$(__yf_helpers_add_dependencies "${__yf_functions}")")"
 unset __yf_commands
 __yf_functions_count=0
 for __yf_temp in ${__yf_functions}; do
